@@ -6,21 +6,19 @@
 
 | Field | Details |
 |---|---|
-| **Project** | BarCodeX: Barcode Generator & Decoder |
+| **Project** | BarCodeX: Barcode Generator & Scanner |
 | **Language** | C++ |
 | **Barcode Standard** | Code 39 |
-| **Goal** | Desktop application for generating and decoding six-digit barcodes |
+| **Goal** | Desktop application for generating and scanning six-digit numeric barcodes |
 | **Domain** | Pattern Matching, Character Encoding, Image Processing |
 
-BarCodeX is a C++ desktop application that generates Code 39 barcodes from numeric input and decodes existing barcode images uploaded by the user.
+BarCodeX is a C++ desktop application designed to generate and scan Code 39 barcodes containing numeric digits (0–9).
 
-The application accepts exactly six digits for barcode generation, generates and saves the barcode image, and allows users to upload an existing barcode image to retrieve its numeric value.
+The application accepts exactly six numeric digits, generates and saves a barcode image, and supports scanning existing barcode images as well as live barcode scanning through a laptop camera.
 
-The encoder and decoder algorithms must be implemented from scratch. General image-processing libraries require instructor approval. The Day 1 encoder may support the basic Code 39 character set internally so its shared algorithm can be tested with the agreed `ABC`, `123`, and `FAST` examples. The final application workflow must validate six-digit numeric input.
+The barcode encoder and decoder algorithms will be implemented from scratch. Camera and general image-processing libraries require instructor approval.
 
-**Supported image formats:** PNG, JPG, JPEG, and BMP.
-
-**Note:** Live camera scanning is not part of the project.
+**Supported input:** Numeric digits (0–9).
 
 ---
 
@@ -29,10 +27,10 @@ The encoder and decoder algorithms must be implemented from scratch. General ima
 | # | Name | Main Responsibility |
 |---|---|---|
 | 1 | Shoaib Ul Hassan (Team Leader) | Project setup and shared interfaces; Code 39 lookup table and encoder; coordination, review, merging, and final integration. |
-| 2 | Umar Khan | Uploaded image input and preprocessing; barcode scan-line extraction and black/white run-width measurement. |
+| 2 | Umar Khan | Camera input and image preprocessing; barcode scan-line extraction and black/white run-width measurement. |
 | 3 | Zain Ul Abideen | Barcode generation; rendering Code 39 patterns as images with element widths and quiet zones, and exporting them. |
 | 4 | Anas | Barcode decoding; classifying run widths, matching Code 39 patterns, and recovering the decoded numeric value. |
-| 5 | Abdul Ahad | User interface; generation and image-upload screens, navigation, input/output display, and connecting the UI to backend modules. |
+| 5 | Abdul Ahad | User interface; generation and scanning screens, navigation, input/output display, and connecting the UI to backend modules. |
 
 ---
 
@@ -51,13 +49,13 @@ git --version
 
 ### Build the Project Using GCC/G++
 
-Open a terminal in the project directory and compile the source files:
+Open a terminal in the project directory:
 
 ```bash
 g++ -std=c++17 -Iinclude src/*.cpp -o barcodex
 ```
 
-**Note:** Update the source file paths if your project uses a different file structure or additional source files.
+**Note:** Update source file paths if your project uses a different file structure or additional source files.
 
 ### Run the Application
 
@@ -79,23 +77,21 @@ g++ -std=c++17 -Iinclude src/*.cpp -o barcodex
 
 ### Generator
 
-- **Code 39 Encoding:** Converts supported numeric input into Code 39 patterns.
+- **Code 39 Encoding:** Converts numeric digits (0–9) into Code 39 barcode patterns.
 - **Six-Digit Validation:** Accepts exactly six numeric digits.
 - **Start/Stop Handling:** Adds the required `*` start/stop symbols.
 - **Input Validation:** Rejects empty input and unsupported characters.
 - **Barcode Image Generation:** Renders the encoded pattern as a barcode image.
 - **Image Export:** Saves the generated barcode image.
 
-### Image Decoder
+### Scanner
 
+- **Live Camera Scanning:** Captures barcode images using a laptop camera.
 - **Image Upload:** Allows users to upload an existing barcode image.
-- **Supported Formats:** PNG, JPG, JPEG, and BMP.
-- **Image Preprocessing:** Processes the uploaded image for barcode recognition.
+- **Image Preprocessing:** Processes captured or uploaded images for barcode recognition.
 - **Run-Width Extraction:** Measures black and white element widths.
 - **Pattern Recognition:** Classifies narrow and wide elements and matches Code 39 patterns.
-- **Numeric Decoding:** Retrieves the original numeric value from the barcode image.
-
-**Note:** The application uses uploaded images only. Camera and live scanning are not included.
+- **Numeric Decoding:** Retrieves the original six-digit numeric value.
 
 ---
 
@@ -121,7 +117,7 @@ BarCodeX/
 │   ├── main.cpp            # Application entry point
 │   ├── encoder.cpp         # Code 39 encoding
 │   ├── decoder.cpp         # Barcode decoding
-│   └── image.cpp           # Image processing
+│   └── image.cpp           # Image processing and camera input
 ├── tests/                  # Encoder and decoder tests
 ├── README.md
 └── LICENSE
