@@ -38,7 +38,8 @@ The barcode encoder and decoder algorithms will be implemented from scratch. Cam
 
 ### Prerequisites
 
-Make sure GCC/G++ and Git are installed.
+Make sure GCC/G++, Git, and the Qt development kit are installed. Qt is the
+desktop UI framework; use a Qt kit compatible with the selected C++ compiler.
 
 Check their versions:
 
@@ -47,29 +48,12 @@ g++ --version
 git --version
 ```
 
-### Build the Project Using GCC/G++
+The repository currently contains the project folder scaffold only. A Qt-aware
+build configuration and application entry point still need to be added; the
+plain GCC command does not configure or link a Qt application.
 
-Open a terminal in the project directory:
-
-```bash
-g++ -std=c++17 -Iinclude src/*.cpp -o barcodex
-```
-
-**Note:** Update source file paths if your project uses a different file structure or additional source files.
-
-### Run the Application
-
-**Windows:**
-
-```bash
-.\barcodex.exe
-```
-
-**Linux:**
-
-```bash
-./barcodex
-```
+Build and run instructions will be added with the Qt application entry point
+and Qt-aware build configuration.
 
 ---
 
@@ -101,6 +85,7 @@ g++ -std=c++17 -Iinclude src/*.cpp -o barcodex
 |---|---|
 | **Programming Language** | C++ |
 | **Compiler** | GCC/G++ |
+| **Desktop UI Framework** | Qt |
 | **Barcode Standard** | Code 39 |
 | **Core Concepts** | Pattern Matching, Character Encoding, Image Processing |
 | **Version Control** | Git & GitHub |
@@ -112,18 +97,22 @@ g++ -std=c++17 -Iinclude src/*.cpp -o barcodex
 ```text
 BarCodeX/
 ├── include/
-│   └── barcodex/           # Shared public interfaces
+│   └── barcodex/
+│       ├── barcode/        # Encoder and decoder interfaces
+│       ├── image/          # Image processing interfaces
+│       └── ui/             # Qt UI interfaces
 ├── src/
-│   ├── main.cpp            # Application entry point
-│   ├── encoder.cpp         # Code 39 encoding
-│   ├── decoder.cpp         # Barcode decoding
-│   └── image.cpp           # Image processing and camera input
+│   ├── barcode/            # Code 39 encoding and decoding
+│   ├── image/              # Uploaded/camera image processing
+│   └── ui/                 # Qt windows and UI behavior
+├── resources/              # Application resources
 ├── tests/                  # Encoder and decoder tests
 ├── README.md
 └── LICENSE
 ```
 
-The exact source files may vary as development progresses.
+The directories are scaffolded; source files and the Qt build configuration
+will be added as development progresses.
 
 ---
 
