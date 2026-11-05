@@ -85,7 +85,7 @@ and Qt-aware build configuration.
 |---|---|
 | **Programming Language** | C++ |
 | **Compiler** | GCC/G++ |
-| **Desktop UI Framework** | Qt |
+| **UI Framework** | Qt |
 | **Barcode Standard** | Code 39 |
 | **Core Concepts** | Pattern Matching, Character Encoding, Image Processing |
 | **Version Control** | Git & GitHub |
