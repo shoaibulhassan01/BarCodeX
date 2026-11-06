@@ -18,6 +18,4 @@ qt_add_executable(HelloWorld
 )
 
 target_link_libraries(HelloWorld PRIVATE Qt6::Widgets)
-set_target_properties(HelloWorld PROPERTIES WIN32_EXECUTABLE OFF)
-
-add_executable(a a.cpp)
+set_target_properties(HelloWorld PROPERTIES WIN32_EXECUTABLE ON)

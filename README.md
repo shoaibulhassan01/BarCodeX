@@ -34,26 +34,28 @@ The barcode encoder and decoder algorithms will be implemented from scratch. Cam
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start (Windows)
 
 ### Prerequisites
 
-Make sure GCC/G++, Git, and the Qt development kit are installed. Qt is the
-desktop UI framework; use a Qt kit compatible with the selected C++ compiler.
+- Git
+- CMake and Ninja (or the copies installed with Qt)
+- Qt 6 with the **MinGW 64-bit** kit and the matching MinGW compiler
 
-Check their versions:
+Install Qt with its Qt Widgets component. The default Qt installer location
+(`C:\Qt`) is detected automatically. For a custom location, set `QT_ROOT` to
+the Qt installation folder or `QT_PREFIX_PATH` to the kit's `mingw_64` folder.
+If more than one MinGW compiler is installed, set `MINGW_ROOT` to the matching
+compiler folder (the one containing `bin\g++.exe`).
 
-```bash
-g++ --version
-git --version
-```
+Clone the repository and double-click `run.bat`, or run it from Command Prompt.
+The script configures and builds the app, deploys the Qt runtime beside the
+executable, and starts the window. The first run requires the Qt development
+kit and build tools; they are not included in the repository.
 
-The repository currently contains the project folder scaffold only. A Qt-aware
-build configuration and application entry point still need to be added; the
-plain GCC command does not configure or link a Qt application.
-
-Build and run instructions will be added with the Qt application entry point
-and Qt-aware build configuration.
+The equivalent CMake preset can be used after setting `CMAKE_PREFIX_PATH`,
+`CMAKE_CXX_COMPILER`, and `CMAKE_MAKE_PROGRAM` to paths for your own Qt and
+MinGW installation.
 
 ---
 
@@ -111,8 +113,8 @@ BarCodeX/
 └── LICENSE
 ```
 
-The directories are scaffolded; source files and the Qt build configuration
-will be added as development progresses.
+The current application opens a basic Qt window. Barcode generation and
+scanning functionality is still under development.
 
 ---
 
