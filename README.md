@@ -113,8 +113,6 @@ BarCodeX/
 ├── scanner/
 │   ├── scanner.cpp             # Image loading, preprocessing, and run extraction
 │   └── scanner.h
-├── src/
-│   └── main.cpp                # Previous application entry point
 ├── tests/                      # Placeholder for tests
 ├── .gitignore                  # Git ignore rules
 ├── CMakeLists.txt              # Qt 6 application build configuration
