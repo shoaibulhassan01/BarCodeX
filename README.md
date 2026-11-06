@@ -123,10 +123,8 @@ BarCodeX/
 └── run.bat                     # Windows build, deploy, and launch script
 ```
 
-The current CMake target uses the root `main.cpp` and the encoder, generator,
-scanner, and decoder modules. The older `src/main.cpp` is not part of that
-target.
-
+The CMake target uses the root `main.cpp` and the encoder, generator,
+scanner, and decoder modules.
 ---
 
 ## 🔀 Team Branch and Commit Workflow
