@@ -99,26 +99,35 @@ MinGW installation.
 
 ```text
 BarCodeX/
-├── include/
-│   └── barcodex/
-│       ├── barcode/        # Encoder and decoder interfaces
-│       ├── image/          # Image processing interfaces
-│       └── ui/             # Qt UI interfaces
+├── common/
+│   └── common.h                # Shared Image type
+├── decoder/
+│   ├── decoder.cpp             # Code 39 run decoding
+│   └── decoder.h
+├── encoder/
+│   ├── encoder.cpp             # Text-to-Code 39 pattern encoding
+│   └── encoder.h
+├── generator/
+│   ├── generator.cpp           # Barcode image generation and saving
+│   └── generator.h
+├── scanner/
+│   ├── scanner.cpp             # Image loading, preprocessing, and run extraction
+│   └── scanner.h
 ├── src/
-│   ├── main.cpp            # Qt application entry point
-│   ├── barcode/            # Code 39 encoding and decoding
-│   ├── image/              # Uploaded/camera image processing
-│   └── ui/                 # Qt windows and UI behavior
-├── .vscode/                # Recommended extensions and CMake tasks
-├── CMakeLists.txt          # Qt 6 build configuration
-├── resources/              # Application resources
-├── tests/                  # Encoder and decoder tests
+│   └── main.cpp                # Previous application entry point
+├── tests/                      # Placeholder for tests
+├── .gitignore                  # Git ignore rules
+├── CMakeLists.txt              # Qt 6 application build configuration
+├── CMakePresets.json           # CMake configure/build preset
+├── LICENSE
+├── main.cpp                    # Current application entry point
 ├── README.md
-└── LICENSE
+└── run.bat                     # Windows build, deploy, and launch script
 ```
 
-The current application opens a basic Qt window. Barcode generation and
-scanning functionality is still under development.
+The current CMake target uses the root `main.cpp` and the encoder, generator,
+scanner, and decoder modules. The older `src/main.cpp` is not part of that
+target.
 
 ---
 
