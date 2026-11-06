@@ -123,10 +123,6 @@ BarCodeX/
 └── run.bat                     # Windows build, deploy, and launch script
 ```
 
-The CMake target uses the root `main.cpp` and the encoder, generator,
-scanner, and decoder modules.
----
-
 ## 🔀 Team Branch and Commit Workflow
 
 `main` is the default branch. Each team member should work on their assigned `feature/<name>` branch, starting from the latest `main` branch.
