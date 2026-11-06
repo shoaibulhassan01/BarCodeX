@@ -1,0 +1,9 @@
+{
+  "C_Cpp.default.compileCommands": "${workspaceFolder}/build/compile_commands.json",
+  "cmake.generator": "Ninja",
+  "cmake.configureSettings": {
+    "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+    "CMAKE_CXX_COMPILER": "C:/msys64/ucrt64/bin/g++.exe",
+    "CMAKE_PREFIX_PATH": "C:/msys64/ucrt64"
+  }
+}

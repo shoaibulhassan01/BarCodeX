@@ -38,22 +38,35 @@ The barcode encoder and decoder algorithms will be implemented from scratch. Cam
 
 ### Prerequisites
 
-Make sure GCC/G++, Git, and the Qt development kit are installed. Qt is the
-desktop UI framework; use a Qt kit compatible with the selected C++ compiler.
+The project uses Qt 6 Widgets. On Windows, use the MSYS2 UCRT64 Qt and GCC
+packages so Qt and the compiler are built for the same toolchain:
 
-Check their versions:
+```bash
+pacman -S --needed mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-qt6-base
+```
+
+Also install CMake 3.21 or newer, Ninja, and Git. Check the compiler and build
+tools:
 
 ```bash
 g++ --version
 git --version
+cmake --version
+ninja --version
 ```
 
-The repository currently contains the project folder scaffold only. A Qt-aware
-build configuration and application entry point still need to be added; the
-plain GCC command does not configure or link a Qt application.
+Configure and build from PowerShell in the repository directory:
 
-Build and run instructions will be added with the Qt application entry point
-and Qt-aware build configuration.
+```powershell
+cmake -S . -B build -G Ninja -DCMAKE_PREFIX_PATH=C:/msys64/ucrt64
+cmake --build build
+.\build\barcodex.exe
+```
+
+The `.vscode` folder provides the same configure/build tasks. Restart VS Code
+after installing Qt so the UCRT64 runtime libraries on `PATH` are available.
+The current window lets you select an image and preview it. Barcode decoding
+and live camera scanning are not implemented yet.
 
 ---
 
@@ -71,7 +84,8 @@ and Qt-aware build configuration.
 ### Scanner
 
 - **Live Camera Scanning:** Captures barcode images using a laptop camera.
-- **Image Upload:** Allows users to upload an existing barcode image.
+- **Image Upload and Preview:** Selects a Qt-supported image file and displays
+  it with its dimensions; barcode decoding is not connected yet.
 - **Image Preprocessing:** Processes captured or uploaded images for barcode recognition.
 - **Run-Width Extraction:** Measures black and white element widths.
 - **Pattern Recognition:** Classifies narrow and wide elements and matches Code 39 patterns.
@@ -85,7 +99,7 @@ and Qt-aware build configuration.
 |---|---|
 | **Programming Language** | C++ |
 | **Compiler** | GCC/G++ |
-| **UI Framework** | Qt |
+| **UI Framework** | Qt 6 Widgets |
 | **Barcode Standard** | Code 39 |
 | **Core Concepts** | Pattern Matching, Character Encoding, Image Processing |
 | **Version Control** | Git & GitHub |
@@ -102,17 +116,20 @@ BarCodeX/
 │       ├── image/          # Image processing interfaces
 │       └── ui/             # Qt UI interfaces
 ├── src/
+│   ├── main.cpp            # Qt application entry point
 │   ├── barcode/            # Code 39 encoding and decoding
 │   ├── image/              # Uploaded/camera image processing
 │   └── ui/                 # Qt windows and UI behavior
+├── .vscode/                # Recommended extensions and CMake tasks
+├── CMakeLists.txt          # Qt 6 build configuration
 ├── resources/              # Application resources
 ├── tests/                  # Encoder and decoder tests
 ├── README.md
 └── LICENSE
 ```
 
-The directories are scaffolded; source files and the Qt build configuration
-will be added as development progresses.
+The directories are scaffolded, and the Qt entry point and CMake configuration
+provide a starting point for the UI, barcode logic, and image-handling work.
 
 ---
 
