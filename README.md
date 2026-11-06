@@ -114,7 +114,7 @@ BarCodeX/
 ├── decoder/
 │   ├── decoder.h           # Run widths to digits (Anas)
 │   └── decoder.cpp
-├── samples/                # Generated test barcode images
+├── tests/                  # Generated test barcode images
 ├── README.md
 ├── .gitignore
 └── LICENSE
