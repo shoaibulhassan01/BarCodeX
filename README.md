@@ -73,7 +73,8 @@ MinGW installation.
 ### Scanner
 
 - **Live Camera Scanning:** Captures barcode images using a laptop camera.
-- **Image Upload:** Allows users to upload an existing barcode image.
+- **Image Upload and Preview:** Selects a Qt-supported image file and displays
+  it with its dimensions; barcode decoding is not connected yet.
 - **Image Preprocessing:** Processes captured or uploaded images for barcode recognition.
 - **Run-Width Extraction:** Measures black and white element widths.
 - **Pattern Recognition:** Classifies narrow and wide elements and matches Code 39 patterns.
@@ -87,7 +88,7 @@ MinGW installation.
 |---|---|
 | **Programming Language** | C++ |
 | **Compiler** | GCC/G++ |
-| **Desktop UI Framework** | Qt |
+| **UI Framework** | Qt 6 Widgets |
 | **Barcode Standard** | Code 39 |
 | **Core Concepts** | Pattern Matching, Character Encoding, Image Processing |
 | **Version Control** | Git & GitHub |
@@ -113,7 +114,7 @@ BarCodeX/
 ├── decoder/
 │   ├── decoder.h           # Run widths to digits (Anas)
 │   └── decoder.cpp
-├── samples/                # Generated test barcode images
+├── tests/                  # Generated test barcode images
 ├── README.md
 ├── .gitignore
 └── LICENSE
