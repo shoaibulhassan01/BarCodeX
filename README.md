@@ -99,29 +99,43 @@ MinGW installation.
 
 ```text
 BarCodeX/
+├── main.cpp                # UI and main program (Ahad)
 ├── common/
-│   └── common.h                # Shared Image type
-├── decoder/
-│   ├── decoder.cpp             # Code 39 run decoding
-│   └── decoder.h
+│   └── common.h            # Shared Image class (Leader)
 ├── encoder/
-│   ├── encoder.cpp             # Text-to-Code 39 pattern encoding
-│   └── encoder.h
+│   ├── encoder.h           # Digits to Code 39 patterns (Leader)
+│   └── encoder.cpp
 ├── generator/
-│   ├── generator.cpp           # Barcode image generation and saving
-│   └── generator.h
+│   ├── generator.h         # Patterns to barcode image (Zain)
+│   └── generator.cpp
 ├── scanner/
-│   ├── scanner.cpp             # Image loading, preprocessing, and run extraction
-│   └── scanner.h
-├── tests/                      # Placeholder for tests
-├── .gitignore                  # Git ignore rules
-├── CMakeLists.txt              # Qt 6 application build configuration
-├── CMakePresets.json           # CMake configure/build preset
-├── LICENSE
-├── main.cpp                    # Current application entry point
+│   ├── scanner.h           # Image to black/white run widths (Umar)
+│   └── scanner.cpp
+├── decoder/
+│   ├── decoder.h           # Run widths to digits (Anas)
+│   └── decoder.cpp
+├── samples/                # Generated test barcode images
 ├── README.md
-└── run.bat                     # Windows build, deploy, and launch script
+├── .gitignore
+└── LICENSE
 ```
+
+**Data flow**
+
+- Generate: digits → `encoder` → patterns → `generator` → barcode image
+- Scan: image → `scanner` → run widths → `decoder` → digits
+
+**Shared formats**
+
+- Pattern: 9 letters, `n` = narrow, `w` = wide (example: `nwnnwnwnn`)
+- Run widths: first value is always a bar (black); narrow = 2 px, wide = 6 px
+- Pixels: black = 0, white = 255
+
+Each member works only inside their own folder. The `.h` files (function names, inputs and outputs) are changed only by the Team Leader.
+
+The current application is a console program that prints "Hello World" and calls each module's placeholder functions. Barcode generation and scanning functionality is still under development.
+
+---
 
 ## 🔀 Team Branch and Commit Workflow
 
