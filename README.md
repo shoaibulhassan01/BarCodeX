@@ -34,39 +34,28 @@ The barcode encoder and decoder algorithms will be implemented from scratch. Cam
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start (Windows)
 
 ### Prerequisites
 
-The project uses Qt 6 Widgets. On Windows, use the MSYS2 UCRT64 Qt and GCC
-packages so Qt and the compiler are built for the same toolchain:
+- Git
+- CMake and Ninja (or the copies installed with Qt)
+- Qt 6 with the **MinGW 64-bit** kit and the matching MinGW compiler
 
-```bash
-pacman -S --needed mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-qt6-base
-```
+Install Qt with its Qt Widgets component. The default Qt installer location
+(`C:\Qt`) is detected automatically. For a custom location, set `QT_ROOT` to
+the Qt installation folder or `QT_PREFIX_PATH` to the kit's `mingw_64` folder.
+If more than one MinGW compiler is installed, set `MINGW_ROOT` to the matching
+compiler folder (the one containing `bin\g++.exe`).
 
-Also install CMake 3.21 or newer, Ninja, and Git. Check the compiler and build
-tools:
+Clone the repository and double-click `run.bat`, or run it from Command Prompt.
+The script configures and builds the app, deploys the Qt runtime beside the
+executable, and starts the window. The first run requires the Qt development
+kit and build tools; they are not included in the repository.
 
-```bash
-g++ --version
-git --version
-cmake --version
-ninja --version
-```
-
-Configure and build from PowerShell in the repository directory:
-
-```powershell
-cmake -S . -B build -G Ninja -DCMAKE_PREFIX_PATH=C:/msys64/ucrt64
-cmake --build build
-.\build\barcodex.exe
-```
-
-The `.vscode` folder provides the same configure/build tasks. Restart VS Code
-after installing Qt so the UCRT64 runtime libraries on `PATH` are available.
-The current window lets you select an image and preview it. Barcode decoding
-and live camera scanning are not implemented yet.
+The equivalent CMake preset can be used after setting `CMAKE_PREFIX_PATH`,
+`CMAKE_CXX_COMPILER`, and `CMAKE_MAKE_PROGRAM` to paths for your own Qt and
+MinGW installation.
 
 ---
 
@@ -128,8 +117,8 @@ BarCodeX/
 └── LICENSE
 ```
 
-The directories are scaffolded, and the Qt entry point and CMake configuration
-provide a starting point for the UI, barcode logic, and image-handling work.
+The current application opens a basic Qt window. Barcode generation and
+scanning functionality is still under development.
 
 ---
 
