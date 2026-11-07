@@ -4,11 +4,14 @@
 #include "../common/common.h"
 #include <QImage>
 
+// Load an image from a file and convert it to grayscale
 Image loadImage(string filename);
 
+// Convert a grayscale image to black and white using a threshold of 128
 Image makeBlackWhite(Image img);
 
-Image takePhoto();
+// Convert a grayscale image to a QImage for display in the GUI
+QImage toQImage(const Image& img);
 
 // Barcode wali line (row number) dhoondo. Na mile to -1.
 int findLine(Image img);
@@ -18,6 +21,6 @@ int findLine(Image img);
 // Example: { 2, 2, 6, 2, 2, 6, 6, 2, 2 }
 vector<int> getRuns(Image img, int line);
 
-QImage toQImage(const Image& img);
+Image takePhoto();
 
-#endif // SCANNER_H
+#endif
