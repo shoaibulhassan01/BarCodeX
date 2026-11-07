@@ -71,14 +71,14 @@ if errorlevel 1 (
 )
 
 echo Building BarCodeX...
-"%CMAKE_EXE%" --build "%~dp0build\BarCodeX" --target HelloWorld
+"%CMAKE_EXE%" --build "%~dp0build\BarCodeX" --target BarCodeX
 if errorlevel 1 (
     echo Build failed.
     pause
     exit /b 1
 )
 
-set "APP_EXE=%~dp0build\BarCodeX\HelloWorld.exe"
+set "APP_EXE=%~dp0build\BarCodeX\BarCodeX.exe"
 if not exist "%APP_EXE%" (
     echo Application executable was not created.
     pause

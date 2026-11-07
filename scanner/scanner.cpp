@@ -1,11 +1,25 @@
 #include "../common/common.h"
 #include "scanner.h"
+#include <QImage>
+
 #include <iostream>
 
+// Load an image from a file and convert it to grayscale
 Image loadImage(string filename) {
-    cout << "[scanner] load: " << filename << endl;
-    // TODO(Umar): file se image parho
     Image img;
+    QImage file;
+    if (!file.load(QString::fromStdString(filename))) {
+        return img;
+    }
+
+    img.width = file.width();
+    img.height = file.height();
+    for (int y = 0; y < img.height; y++) {
+        for (int x = 0; x < img.width; x++) {
+            // push the grayscale value into the pixels array.
+            img.pixels.push_back(qGray(file.pixel(x, y)));
+        }
+    }
     return img;
 }
 
@@ -17,8 +31,9 @@ Image takePhoto() {
 }
 
 Image makeBlackWhite(Image img) {
-    cout << "[scanner] black white" << endl;
-    // TODO(Umar): threshold lagao
+    for (int &pixel : img.pixels) {
+        pixel = pixel < 128 ? 0 : 255;
+    }
     return img;
 }
 

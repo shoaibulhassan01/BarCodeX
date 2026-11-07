@@ -1,5 +1,9 @@
-// OWNER: Umar
+#ifndef SCANNER_H
+#define SCANNER_H
 
+#include "../common/common.h"
+
+// OWNER: Umar
 // File se image kholo
 Image loadImage(string filename);
 
@@ -16,3 +20,5 @@ int findLine(Image img);
 // Rule: pehla number hamesha BAR (kala) ka hoga.
 // Example: { 2, 2, 6, 2, 2, 6, 6, 2, 2 }
 vector<int> getRuns(Image img, int line);
+
+#endif
