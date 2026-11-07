@@ -21,18 +21,19 @@ Image loadImage(string filename) {
 }
 
 Image makeBlackWhite(Image img) {
-    for (int i = 0; i < img.pixels.size(); i++) {
+    for (int i = 0; i < (int)img.pixels.size(); i++) {
         img.pixels[i] = (img.pixels[i] < 128) ? 0 : 255;
     }
     return img;
 }
 
 QImage toQImage(const Image& img) {
-    QImage result(img.width, img.height, QImage::Format_RGB32);
+    QImage result(img.width, img.height, QImage::Format_RGB32);  // 32-bit RGB format with opaque alpha byte (0xFF)
+
     for (int y = 0; y < img.height; y++) {
         for (int x = 0; x < img.width; x++) {
             int gray = img.pixels[y * img.width + x];
-            result.setPixel(x, y, qRgb(gray, gray, gray));
+            result.setPixel(x, y, qRgb(gray, gray, gray));  // set pixels of the grayscale image
         }
     }
     return result;
@@ -41,18 +42,60 @@ QImage toQImage(const Image& img) {
 int findLine(Image img) {
     for (int y = 0; y < img.height; y++) {
         for (int x = 0; x < img.width; x++) {
-            if (img.pixels[y * img.width + x] == 0) { // black pixel found
+            if (img.pixels[y * img.width + x] == 0) {  // black pixel found
                 return y;
             }
         }
     }
-    return -1; // no black pixel found
+    return -1;  // no black pixel found
 }
 
 vector<int> getRuns(Image img, int line) {
-    //cout << "[scanner] get runs, line = " << line << endl;
-    // TODO(Umar): runs naapo
     vector<int> runs;
+
+    if (line < 0 || line >= img.height)
+        return runs;  // return empty vector
+
+    int count = 0;
+    bool isBlack = false;
+    bool first = false;
+
+    for (int x = 0; x < img.width; x++) {
+        if (!first) {  // first pixel should be black
+            if (img.pixels[line * img.width + x] == 0) {
+                isBlack = true;
+                count++;
+                first = true;
+                continue;
+            }
+            continue;
+        }
+
+        if (img.pixels[line * img.width + x] == 0) {
+            if (isBlack) {
+                count++;
+            }
+            else {
+                isBlack = true;
+                runs.push_back(count);  // push old run first
+                count = 1;
+            }
+        }
+        else {
+            if (!isBlack) {
+                count++;
+            }
+            else {
+                isBlack = false;
+                runs.push_back(count);
+                count = 1;
+            }
+        }
+    }
+
+    if (isBlack)
+        runs.push_back(count);  // push last run only if black
+
     return runs;
 }
 
