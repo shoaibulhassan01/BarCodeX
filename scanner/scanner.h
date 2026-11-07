@@ -1,13 +1,14 @@
-// OWNER: Umar
+#ifndef SCANNER_H
+#define SCANNER_H
 
-// File se image kholo
+#include "../common/common.h"
+#include <QImage>
+
 Image loadImage(string filename);
 
-// Camera se photo lo
-Image takePhoto();
-
-// Image ko kala/safaid banao (128 se kam = 0, baki = 255)
 Image makeBlackWhite(Image img);
+
+Image takePhoto();
 
 // Barcode wali line (row number) dhoondo. Na mile to -1.
 int findLine(Image img);
@@ -16,3 +17,7 @@ int findLine(Image img);
 // Rule: pehla number hamesha BAR (kala) ka hoga.
 // Example: { 2, 2, 6, 2, 2, 6, 6, 2, 2 }
 vector<int> getRuns(Image img, int line);
+
+QImage toQImage(const Image& img);
+
+#endif 

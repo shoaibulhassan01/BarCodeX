@@ -73,7 +73,8 @@ MinGW installation.
 ### Scanner
 
 - **Live Camera Scanning:** Captures barcode images using a laptop camera.
-- **Image Upload:** Allows users to upload an existing barcode image.
+- **Image Upload and Preview:** Selects a Qt-supported image file and displays
+  it with its dimensions; barcode decoding is not connected yet.
 - **Image Preprocessing:** Processes captured or uploaded images for barcode recognition.
 - **Run-Width Extraction:** Measures black and white element widths.
 - **Pattern Recognition:** Classifies narrow and wide elements and matches Code 39 patterns.
@@ -87,7 +88,7 @@ MinGW installation.
 |---|---|
 | **Programming Language** | C++ |
 | **Compiler** | GCC/G++ |
-| **Desktop UI Framework** | Qt |
+| **UI Framework** | Qt 6 Widgets |
 | **Barcode Standard** | Code 39 |
 | **Core Concepts** | Pattern Matching, Character Encoding, Image Processing |
 | **Version Control** | Git & GitHub |
@@ -98,23 +99,41 @@ MinGW installation.
 
 ```text
 BarCodeX/
-├── include/
-│   └── barcodex/
-│       ├── barcode/        # Encoder and decoder interfaces
-│       ├── image/          # Image processing interfaces
-│       └── ui/             # Qt UI interfaces
-├── src/
-│   ├── barcode/            # Code 39 encoding and decoding
-│   ├── image/              # Uploaded/camera image processing
-│   └── ui/                 # Qt windows and UI behavior
-├── resources/              # Application resources
-├── tests/                  # Encoder and decoder tests
+├── main.cpp                # UI and main program (Ahad)
+├── common/
+│   └── common.h            # Shared Image class (Leader)
+├── encoder/
+│   ├── encoder.h           # Digits to Code 39 patterns (Leader)
+│   └── encoder.cpp
+├── generator/
+│   ├── generator.h         # Patterns to barcode image (Zain)
+│   └── generator.cpp
+├── scanner/
+│   ├── scanner.h           # Image to black/white run widths (Umar)
+│   └── scanner.cpp
+├── decoder/
+│   ├── decoder.h           # Run widths to digits (Anas)
+│   └── decoder.cpp
+├── tests/                  # Generated test barcode images
 ├── README.md
+├── .gitignore
 └── LICENSE
 ```
 
-The current application opens a basic Qt window. Barcode generation and
-scanning functionality is still under development.
+**Data flow**
+
+- Generate: digits → `encoder` → patterns → `generator` → barcode image
+- Scan: image → `scanner` → run widths → `decoder` → digits
+
+**Shared formats**
+
+- Pattern: 9 letters, `n` = narrow, `w` = wide (example: `nwnnwnwnn`)
+- Run widths: first value is always a bar (black); narrow = 2 px, wide = 6 px
+- Pixels: black = 0, white = 255
+
+Each member works only inside their own folder. The `.h` files (function names, inputs and outputs) are changed only by the Team Leader.
+
+The current application is a console program that prints "Hello World" and calls each module's placeholder functions. Barcode generation and scanning functionality is still under development.
 
 ---
 

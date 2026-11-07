@@ -1,58 +1,55 @@
-#include "common/common.h"
-#include "encoder/encoder.h"
-#include "generator/generator.h"
 #include "scanner/scanner.h"
-#include "decoder/decoder.h"
 
 #include <QApplication>
+#include <QHBoxLayout>
+#include <QImage>
 #include <QLabel>
+#include <QPixmap>
 #include <QVBoxLayout>
 #include <QWidget>
+
 #include <iostream>
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
 
-    cout << "Hello World" << endl;
-
-    cout << "--- GENERATE ---" << endl;
-    vector<string> patterns = encodeText("ABC");
-    Image barcode = generateBarcode(patterns);
-    saveImage(barcode, "samples/test.png");
-
-    cout << "--- SCAN ---" << endl;
-    Image img = loadImage("samples/test.png");
-    Image bw = makeBlackWhite(img);
-    int line = findLine(bw);
-    vector<int> runs = getRuns(bw, line);
-
-    string text, error;
-    bool decoded = decodeRuns(runs, text, error);
-    if (decoded) {
-        cout << "Decoded: " << text << endl;
-    } else {
-        cout << "Error: " << error << endl;
+    const string imagePath = "tests/cat.jpeg";
+    QImage original(QString::fromStdString(imagePath));
+    if (original.isNull()) {
+        std::cerr << "Could not load " << imagePath << std::endl;
+        return 1;
     }
 
+    Image gray = loadImage(imagePath);
+    if (gray.width == 0 || gray.height == 0) {
+        std::cerr << "Scanner could not read " << imagePath << std::endl;
+        return 1;
+    }
+    Image bw = makeBlackWhite(gray);
+
     QWidget window;
-    window.setWindowTitle("BarCodeX");
-    window.resize(600, 400);
-    window.setStyleSheet("background-color: blue;");
+    window.setWindowTitle("Color, Grayscale, and Black-and-White Comparison");
 
-    auto *label = new QLabel(
-        decoded ? QString("Hello World!\nDecoded: %1").arg(QString::fromStdString(text))
-                : QString("Hello World!\nError: %1").arg(QString::fromStdString(error)),
-        &window);
-    label->setAlignment(Qt::AlignCenter);
-    label->setStyleSheet(
-        "color: white;"
-        "font-size: 30px;"
-        "font-weight: bold;"
-    );
+    auto* comparison = new QHBoxLayout;
+    const QImage images[] = {original, toQImage(gray), toQImage(bw)};
+    const QString titles[] = {"Original (color)", "Grayscale", "Black and white"};
 
-    auto *layout = new QVBoxLayout(&window);
-    layout->addWidget(label);
+    for (int i = 0; i < 3; ++i) {
+        auto* panel = new QVBoxLayout;
+        auto* title = new QLabel(titles[i]);
+        auto* preview = new QLabel;
+        preview->setAlignment(Qt::AlignCenter);
+        preview->setPixmap(QPixmap::fromImage(images[i]).scaled(
+            360, 280, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+        preview->setFixedSize(370, 290);
+        panel->addWidget(title);
+        panel->addWidget(preview);
+        comparison->addLayout(panel);
+    }
 
+    window.setLayout(comparison);
+    window.resize(1170, 350);
     window.show();
+
     return app.exec();
 }
