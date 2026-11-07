@@ -20,4 +20,4 @@ vector<int> getRuns(Image img, int line);
 
 QImage toQImage(const Image& img);
 
-#endif 
+#endif // SCANNER_H
