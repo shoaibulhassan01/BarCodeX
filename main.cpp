@@ -6,7 +6,7 @@
 #include <QLabel>
 #include <QPixmap>
 #include <QVBoxLayout>
-#include <QWidget>
+#include <QWidget>                      // pushing testing//
 
 #include <iostream>
 
