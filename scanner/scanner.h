@@ -2,16 +2,13 @@
 #define SCANNER_H
 
 #include "../common/common.h"
+#include <QImage>
 
-// OWNER: Umar
-// File se image kholo
 Image loadImage(string filename);
 
-// Camera se photo lo
-Image takePhoto();
-
-// Image ko kala/safaid banao (128 se kam = 0, baki = 255)
 Image makeBlackWhite(Image img);
+
+Image takePhoto();
 
 // Barcode wali line (row number) dhoondo. Na mile to -1.
 int findLine(Image img);
@@ -21,4 +18,6 @@ int findLine(Image img);
 // Example: { 2, 2, 6, 2, 2, 6, 6, 2, 2 }
 vector<int> getRuns(Image img, int line);
 
-#endif
+QImage toQImage(const Image& img);
+
+#endif 

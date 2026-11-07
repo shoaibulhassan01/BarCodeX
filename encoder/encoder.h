@@ -8,4 +8,4 @@
 // Galat character ya khali text ho to khali list wapas aati hai.
 vector<string> encodeText(string text);
 
-#endif ENCODER_H
+#endif 

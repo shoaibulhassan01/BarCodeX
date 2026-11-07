@@ -7,4 +7,4 @@
 // Na hone par false aur error mein wajah. Program kabhi crash na ho.
 bool decodeRuns(vector<int> runs, string &text, string &error);
 
-#endif DECODER_H
+#endif

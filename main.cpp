@@ -7,18 +7,8 @@
 #include <QPixmap>
 #include <QVBoxLayout>
 #include <QWidget>
-#include <iostream>
 
-QImage toQImage(const Image& img) {
-    QImage result(img.width, img.height, QImage::Format_RGB32);
-    for (int y = 0; y < img.height; y++) {
-        for (int x = 0; x < img.width; x++) {
-            int gray = img.pixels[y * img.width + x];
-            result.setPixel(x, y, qRgb(gray, gray, gray));
-        }
-    }
-    return result;
-}
+#include <iostream>
 
 int main(int argc, char* argv[]) {
     QApplication app(argc, argv);

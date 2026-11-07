@@ -10,4 +10,4 @@ Image generateBarcode(vector<string> patterns);
 // Image ko file mein save karta hai. Kamyab ho to true.
 bool saveImage(Image img, string filename);
 
-#endif GENERATOR_H
+#endif 
