@@ -24,10 +24,6 @@ Image makeBlackWhite(Image img) {
     return img;
 }
 
-bool validImage(const Image& img) {
-    return true;
-}
-
 // Helper for findRow()
 int countTransitions(const Image& img, int row) {
     if (row < 0 || row >= img.height)
@@ -128,22 +124,52 @@ string runsToString(const vector<int>& runs) {
     return s;
 }
 
+bool validPattern(const string& pattern) {
+    if (pattern.size() != 79)  // 79 alternating bars and spaces in Code-39
+        return false;
+
+    int size = pattern.size();
+    int count = 0;
+    int wides = 0;
+
+    for (int i = 0; i < size; i++) {
+        count++;
+        if (count == 10) {  // check for 3-wides for each group of 9
+            if (wides != 3 || pattern[i] != 'n')
+                return false;
+            else {
+                count = 0;
+                wides = 0;
+                continue;
+            }
+        }
+        if (pattern[i] == 'w')
+            wides++;
+    }
+
+    // check for start and stop combintions ("nwnnwnwnn" for '*')
+    string asterisk = "nwnnwnwnn";
+    if (pattern.substr(0, 9) != asterisk || pattern.substr(size - 9) !=  asterisk)
+        return false;
+
+    return true;
+}
+
 string imageToString(const QImage& file) {
     Image img = makeGrayScale(file);
     img = makeBlackWhite(img);
 
-    if (!validImage(img)) {
-        return "";
-    }
-
     vector<int> runs = getRuns(img);
-    string result = runsToString(runs);
+    string pattern = runsToString(runs);
 
-    return result;
+    if (!validPattern(pattern))
+        return "";
+
+    return pattern;
 }
 
 Image scanFromCamera() {
-    // TODO(Umar): Scan barcode directly from the camera
+    // TODO: Scan barcode directly from the camera
     Image img;
     return img;
 }

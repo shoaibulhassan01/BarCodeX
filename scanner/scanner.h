@@ -10,9 +10,6 @@ Image makeGrayScale(const QImage& file);
 // Convert a grayscale image to black and white using a threshold of 128.
 Image makeBlackWhite(Image img);
 
-// Check if the uploaded image is a valid Code-39 barcode image.
-bool validImage(const Image& img);  
-
 // Count changes between adjacent pixels on a row.
 int countTransitions(const Image& img, int line);
 
@@ -25,6 +22,9 @@ vector<int> getRuns(const Image& img);
 
 // Convert the runs from getRuns() into a string ("nwnwwnw...") to be passed to the decoder.
 string runsToString(const vector<int>& runs);
+
+// Check if the uploaded image generates a valid Code-39 N/W string pattern.
+bool validPattern(const string& pattern);  
 
 // A single callable function for the decoder modue (Anas) that directly converts a QImage object
 // to an N/W string to be decoded into a 6-digit number.
