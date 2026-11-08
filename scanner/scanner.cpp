@@ -2,18 +2,14 @@
 #include "scanner.h"
 #include <QImage>
 
-Image loadImage(string filename) {
+Image makeGrayScale(const QImage& file) {
     Image img;
-    QImage file;
-    if (!file.load(QString::fromStdString(filename))) {
-        return img;  // caller will report erorr
-    }
-
     img.width = file.width();
     img.height = file.height();
+
     for (int y = 0; y < img.height; y++) {
         for (int x = 0; x < img.width; x++) {
-            // push the grayscale value into the pixels array.
+            // push the grayscale value into the pixels array
             img.pixels.push_back(qGray(file.pixel(x, y)));
         }
     }
@@ -21,48 +17,63 @@ Image loadImage(string filename) {
 }
 
 Image makeBlackWhite(Image img) {
+    // TODO: Improve this function (probably use Otsu's method of local thresholding)
     for (int i = 0; i < (int)img.pixels.size(); i++) {
         img.pixels[i] = (img.pixels[i] < 128) ? 0 : 255;
     }
     return img;
 }
 
-QImage toQImage(const Image& img) {
-    QImage result(img.width, img.height, QImage::Format_RGB32);  // 32-bit RGB format with opaque alpha byte (0xFF)
-
-    for (int y = 0; y < img.height; y++) {
-        for (int x = 0; x < img.width; x++) {
-            int gray = img.pixels[y * img.width + x];
-            result.setPixel(x, y, qRgb(gray, gray, gray));  // set pixels of the grayscale image
-        }
-    }
-    return result;
+bool validImage(const Image& img) {
+    return true;
 }
 
-int findLine(Image img) {
-    for (int y = 0; y < img.height; y++) {
-        for (int x = 0; x < img.width; x++) {
-            if (img.pixels[y * img.width + x] == 0) {  // black pixel found
-                return y;
-            }
-        }
-    }
-    return -1;  // no black pixel found
+// Helper for findRow()
+int countTransitions(const Image& img, int row) {
+    if (row < 0 || row >= img.height)
+        return 0;
+
+    int count = 0;
+     for (int x = 1; x < img.width; x++) {
+        if (img.pixels[row * img.width + (x - 1)] != img.pixels[row * img.width + x])
+            count++;
+     }
+     return count;
 }
 
-vector<int> getRuns(Image img, int line) {
+// Helper for getRuns()
+int findRow(const Image& img) {
+    int count = 0;
+    int startRow = 0;
+    bool found = false;
+
+     for (int y = 0; y < img.height; y++) {
+        count = countTransitions(img, y);
+
+        if (count == 80) {
+            startRow = y;
+            found = true;
+            break;
+        }
+    } 
+
+    return found ? startRow : -1;
+}
+
+vector<int> getRuns(const Image& img) {
     vector<int> runs;
+    int row = findRow(img);
 
-    if (line < 0 || line >= img.height)
+    if (row < 0 || row >= img.height)
         return runs;  // return empty vector
-
+ 
     int count = 0;
     bool isBlack = false;
     bool first = false;
 
     for (int x = 0; x < img.width; x++) {
         if (!first) {  // first pixel should be black
-            if (img.pixels[line * img.width + x] == 0) {
+            if (img.pixels[row * img.width + x] == 0) {
                 isBlack = true;
                 count++;
                 first = true;
@@ -71,7 +82,7 @@ vector<int> getRuns(Image img, int line) {
             continue;
         }
 
-        if (img.pixels[line * img.width + x] == 0) {
+        if (img.pixels[row * img.width + x] == 0) {
             if (isBlack) {
                 count++;
             }
@@ -99,9 +110,40 @@ vector<int> getRuns(Image img, int line) {
     return runs;
 }
 
-Image takePhoto() {
-    //cout << "[scanner] camera photo" << endl;
-    // TODO(Umar): camera se photo lo
+string runsToString(const vector<int>& runs) {
+    string s;
+
+    if (runs.empty()) {
+        return s;
+    }
+
+    int narrowBar = runs[0];  // first run is a narrow black bar
+
+    for (int i = 0; i < (int)runs.size(); i++) {
+         if (runs[i] * 2 <= narrowBar * 3)   // up to 1.5 times the narrow bar counts as narrow 
+            s.push_back('n');
+        else
+            s.push_back('w');
+    }
+    return s;
+}
+
+string imageToString(const QImage& file) {
+    Image img = makeGrayScale(file);
+    img = makeBlackWhite(img);
+
+    if (!validImage(img)) {
+        return "";
+    }
+
+    vector<int> runs = getRuns(img);
+    string result = runsToString(runs);
+
+    return result;
+}
+
+Image scanFromCamera() {
+    // TODO(Umar): Scan barcode directly from the camera
     Image img;
     return img;
 }

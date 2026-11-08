@@ -4,23 +4,33 @@
 #include "../common/common.h"
 #include <QImage>
 
-// Load an image from a file and convert it to grayscale
-Image loadImage(string filename);
+// Convert a loaded image to grayscale.
+Image makeGrayScale(const QImage& file);
 
-// Convert a grayscale image to black and white using a threshold of 128
+// Convert a grayscale image to black and white using a threshold of 128.
 Image makeBlackWhite(Image img);
 
-// Convert a grayscale image to a QImage for display in the GUI
-QImage toQImage(const Image& img);
+// Check if the uploaded image is a valid Code-39 barcode image.
+bool validImage(const Image& img);  
 
-// Barcode wali line (row number) dhoondo. Na mile to -1.
-int findLine(Image img);
+// Count changes between adjacent pixels on a row.
+int countTransitions(const Image& img, int line);
 
-// Us line par kale/safaid runs ki chorai (pixels mein).
-// Rule: pehla number hamesha BAR (kala) ka hoga.
-// Example: { 2, 2, 6, 2, 2, 6, 6, 2, 2 }
-vector<int> getRuns(Image img, int line);
+// Find the first row in the image that has exactly 80 transitions (first row of barcode).
+int findRow(const Image& img);
 
-Image takePhoto();
+// Calculate the widths of black bars and white spaces on the first row of barcode.
+// Note: This function assumes a valid Code-39 barcode image.
+vector<int> getRuns(const Image& img);
+
+// Convert the runs from getRuns() into a string ("nwnwwnw...") to be passed to the decoder.
+string runsToString(const vector<int>& runs);
+
+// A single callable function for the decoder modue (Anas) that directly converts a QImage object
+// to an N/W string to be decoded into a 6-digit number.
+string imageToString(const QImage& file);
+
+// To scan a barcode directly from a desktop/laptop camera.
+Image scanFromCamera();
 
 #endif
