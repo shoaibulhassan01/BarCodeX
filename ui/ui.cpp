@@ -43,20 +43,20 @@
 static const bool kBlockLeadingZero = true;
 
 // Colours used by the UI (change them here, the stylesheet picks them up).
-static const char* kAccent = "#6C4CF1";
-static const char* kAccentHover = "#5A3BD9";
-static const char* kAccentLight = "#EFEBFE";
-static const char* kBackground = "#F8F7FF";
-static const char* kBorder = "#E3DCF7";
-static const char* kText = "#17132B";
-static const char* kMuted = "#747180";
-static const char* kSoft = "#A78BFA";
-static const char* kOk = "#1a7f37";
-static const char* kOkBg = "#e9f6ee";
-static const char* kOkBorder = "#b5dcc2";
-static const char* kBad = "#b42318";
-static const char* kBadBg = "#fdeceb";
-static const char* kBadBorder = "#f0b9b4";
+static const char* kAccent = "#4F46E5";
+static const char* kAccentHover = "#4338CA";
+static const char* kAccentLight = "#EEF2FF";
+static const char* kBackground = "#F5F7FB";
+static const char* kBorder = "#E2E8F0";
+static const char* kText = "#172033";
+static const char* kMuted = "#667085";
+static const char* kSoft = "#A5B4FC";
+static const char* kOk = "#16804A";
+static const char* kOkBg = "#ECF8F1";
+static const char* kOkBorder = "#B7E2C8";
+static const char* kBad = "#B42318";
+static const char* kBadBg = "#FEF3F2";
+static const char* kBadBorder = "#F2C2BE";
 
 // =====================================================================
 //  App icon: a few bars on a rounded square
@@ -279,7 +279,7 @@ private:
     void setStatus(const QString& msg, bool isError)
     {
         footMsg->setText(msg);
-        footMsg->setStyleSheet(QString("color:%1;").arg(isError ? "#ff9b94" : kBackground));
+        footMsg->setStyleSheet(QString("color:%1;").arg(isError ? kBad : kMuted));
     }
 
     static QFrame* makeCard()
@@ -336,8 +336,8 @@ private:
         root->setSpacing(0);
 
         auto* body = new QVBoxLayout;
-        body->setContentsMargins(28, 20, 28, 16);
-        body->setSpacing(14);
+        body->setContentsMargins(30, 24, 30, 18);
+        body->setSpacing(16);
         root->addLayout(body, 1);
 
         body->addLayout(buildHeader());
@@ -355,21 +355,30 @@ private:
     QHBoxLayout* buildHeader()
     {
         auto* row = new QHBoxLayout;
-        row->setSpacing(12);
+        row->setSpacing(14);
 
         auto* logo = new QLabel;
         logo->setPixmap(makeLogo(40));
         logo->setFixedSize(40, 40);
         row->addWidget(logo);
 
+        auto* titleBlock = new QVBoxLayout;
+        titleBlock->setSpacing(2);
+
         auto* title = new QLabel("BarcodeX");
         title->setObjectName("appTitle");
-        row->addWidget(title);
+        titleBlock->addWidget(title);
+
+        auto* sub = new QLabel("Barcode generation and image scanning");
+        sub->setObjectName("muted");
+        titleBlock->addWidget(sub);
+        row->addLayout(titleBlock);
         row->addStretch();
 
-        auto* sub = new QLabel("Code 39 generator and scanner");
-        sub->setObjectName("muted");
-        row->addWidget(sub, 0, Qt::AlignVCenter);
+        auto* badge = new QLabel("CODE 39 STANDARD");
+        badge->setObjectName("headerBadge");
+        badge->setAlignment(Qt::AlignCenter);
+        row->addWidget(badge, 0, Qt::AlignVCenter);
         return row;
     }
 
@@ -408,13 +417,13 @@ private:
     {
         auto* footer = new QFrame;
         footer->setObjectName("footer");
-        footer->setFixedHeight(36);
+        footer->setFixedHeight(42);
         auto* h = new QHBoxLayout(footer);
         h->setContentsMargins(28, 0, 28, 0);
 
         footMsg = new QLabel;
         footMsg->setObjectName("footMsg");
-        auto* ver = new QLabel("BarcodeX 1.0");
+        auto* ver = new QLabel("BARCODEX  ·  1.0");
         ver->setObjectName("muted");
 
         h->addWidget(footMsg, 1);
@@ -428,7 +437,7 @@ private:
         auto* page = new QWidget;
         auto* row = new QHBoxLayout(page);
         row->setContentsMargins(0, 6, 0, 0);
-        row->setSpacing(18);
+        row->setSpacing(20);
         row->addWidget(buildUploadCard(), 1);
         row->addWidget(buildResultCard(), 1);
         return page;
@@ -438,8 +447,8 @@ private:
     {
         QFrame* card = makeCard();
         auto* lay = new QVBoxLayout(card);
-        lay->setContentsMargins(22, 20, 22, 22);
-        lay->setSpacing(12);
+        lay->setContentsMargins(24, 22, 24, 24);
+        lay->setSpacing(14);
         addCardTitle(lay, "Open an image", "Pick a photo or screenshot that contains a barcode.");
 
         auto* zone = new DropZone;
@@ -464,7 +473,7 @@ private:
         auto* choose = new QPushButton("Choose file...");
         choose->setObjectName("primaryBtn");
         choose->setCursor(Qt::PointingHandCursor);
-        choose->setFixedSize(150, 40);
+        choose->setFixedSize(160, 44);
         connect(choose, &QPushButton::clicked, this, [this] { onChooseImage(); });
         dz->addWidget(choose, 0, Qt::AlignHCenter);
 
@@ -482,8 +491,8 @@ private:
     {
         QFrame* card = makeCard();
         auto* lay = new QVBoxLayout(card);
-        lay->setContentsMargins(22, 20, 22, 22);
-        lay->setSpacing(12);
+        lay->setContentsMargins(24, 22, 24, 24);
+        lay->setSpacing(14);
         addCardTitle(lay, "Result");
 
         scanPreview = new PreviewFrame("The image you open will be shown here.");
@@ -501,7 +510,7 @@ private:
         copyBtn = new QPushButton("Copy");
         copyBtn->setObjectName("secondaryBtn");
         copyBtn->setCursor(Qt::PointingHandCursor);
-        copyBtn->setFixedHeight(30);
+        copyBtn->setFixedHeight(32);
         connect(copyBtn, &QPushButton::clicked, this, [this] {
             const QString d = valueDigits->property("rawDigits").toString();
             if (!d.isEmpty()) {
@@ -529,7 +538,7 @@ private:
         auto* page = new QWidget;
         auto* row = new QHBoxLayout(page);
         row->setContentsMargins(0, 6, 0, 0);
-        row->setSpacing(18);
+        row->setSpacing(20);
         row->addWidget(buildInputCard(), 1);
         row->addWidget(buildPreviewCard(), 1);
         return page;
@@ -539,8 +548,8 @@ private:
     {
         QFrame* card = makeCard();
         auto* lay = new QVBoxLayout(card);
-        lay->setContentsMargins(22, 20, 22, 22);
-        lay->setSpacing(12);
+        lay->setContentsMargins(24, 22, 24, 24);
+        lay->setSpacing(14);
         addCardTitle(lay, "Enter a number", "Exactly 6 digits. The first digit can't be 0.");
 
         auto* row = new QHBoxLayout;
@@ -552,8 +561,8 @@ private:
             boxes[i]->setMaxLength(1);
             boxes[i]->setAlignment(Qt::AlignCenter);
             boxes[i]->setValidator(validator);
-            boxes[i]->setFixedHeight(60);
-            boxes[i]->setMinimumWidth(46);
+            boxes[i]->setFixedHeight(64);
+            boxes[i]->setMinimumWidth(48);
             boxes[i]->installEventFilter(this);
             row->addWidget(boxes[i]);
 
@@ -574,7 +583,7 @@ private:
         generateBtn = new QPushButton("Generate");
         generateBtn->setObjectName("primaryBtn");
         generateBtn->setCursor(Qt::PointingHandCursor);
-        generateBtn->setFixedSize(150, 40);
+        generateBtn->setFixedSize(160, 44);
         connect(generateBtn, &QPushButton::clicked, this, [this] { onGenerate(); });
         lay->addWidget(generateBtn, 0, Qt::AlignLeft);
 
@@ -590,8 +599,8 @@ private:
     {
         QFrame* card = makeCard();
         auto* lay = new QVBoxLayout(card);
-        lay->setContentsMargins(22, 20, 22, 22);
-        lay->setSpacing(12);
+        lay->setContentsMargins(24, 22, 24, 24);
+        lay->setSpacing(14);
         addCardTitle(lay, "Barcode");
 
         genPreview = new PreviewFrame("Your barcode will be shown here.");
@@ -600,7 +609,7 @@ private:
         saveBtn = new QPushButton("Save image...");
         saveBtn->setObjectName("secondaryBtn");
         saveBtn->setCursor(Qt::PointingHandCursor);
-        saveBtn->setFixedHeight(36);
+        saveBtn->setFixedHeight(38);
         saveBtn->setEnabled(false);
         connect(saveBtn, &QPushButton::clicked, this, [this] { onSave(); });
         lay->addWidget(saveBtn, 0, Qt::AlignLeft);
@@ -618,7 +627,7 @@ private:
         QString shown = "- - - - - -", raw;
         switch (s) {
         case ScanState::Idle:
-            bg = "#F6F4FD"; border = kBorder; titleColor = kMuted; digitColor = "#B9AEE6";
+            bg = "#F8FAFC"; border = kBorder; titleColor = kMuted; digitColor = "#AAB4C5";
             status = "Waiting"; statusColor = kMuted;
             break;
         case ScanState::Ok:
@@ -627,7 +636,7 @@ private:
             shown = digits; raw = digits;
             break;
         case ScanState::Bad:
-            bg = kBadBg; border = kBadBorder; titleColor = kBad; digitColor = "#d4a6a1";
+            bg = kBadBg; border = kBadBorder; titleColor = kBad; digitColor = "#D5A5A1";
             title = msg.isEmpty() ? QString("No barcode found") : msg;
             status = "Invalid"; statusColor = kBad;
             break;
@@ -787,8 +796,10 @@ private:
             QFrame#central { background:@bg; }
             QLabel { background:transparent; color:@text; font-size:14px; }
 
-            QLabel#appTitle { font-size:24px; font-weight:600; }
+            QLabel#appTitle { font-size:24px; font-weight:700; }
             QLabel#muted    { color:@muted; font-size:13px; }
+            QLabel#headerBadge { color:@accent; background:@accentLight; border:1px solid #DDE3FF;
+                                 border-radius:12px; padding:7px 12px; font-size:11px; font-weight:700; }
             QLabel#cardTitle{ font-size:17px; font-weight:600; }
             QLabel#dzTitle  { font-size:17px; font-weight:600; }
             QLabel#infoKey  { color:@muted; font-size:14px; }
@@ -796,35 +807,40 @@ private:
             QLabel#errText  { color:@bad; font-size:13px; }
             QLabel#valueTitle { font-size:14px; }
 
-            QFrame#card { background:white; border:1px solid @border; border-radius:8px; }
+            QFrame#card { background:white; border:1px solid @border; border-radius:12px; }
             QFrame#line { background:@border; border:none; }
 
-            QFrame#dropZone { background:#FCFBFF; border:2px dashed @soft; border-radius:8px; }
+            QFrame#dropZone { background:#FAFBFE; border:2px dashed #C8D0E0; border-radius:10px; }
+            QFrame#dropZone:hover { background:#F5F7FF; border:2px dashed @soft; }
             QFrame#dropZone[drag="true"] { background:@accentLight; border:2px dashed @accent; }
 
             QPushButton#tab { background:transparent; border:none; border-bottom:2px solid transparent;
-                              color:@muted; font-size:15px; padding:8px 4px; margin-right:22px; }
+                              color:@muted; font-size:14px; padding:10px 5px; margin-right:24px; }
             QPushButton#tab:hover { color:@text; }
-            QPushButton#tab:checked { color:@accent; font-weight:600; border-bottom:2px solid @accent; }
+            QPushButton#tab:checked { color:@accent; font-weight:700; border-bottom:2px solid @accent; }
+            QPushButton#tab:focus { outline:none; }
 
-            QPushButton#primaryBtn { background:@accent; color:white; border:none; border-radius:6px;
+            QPushButton#primaryBtn { background:@accent; color:white; border:none; border-radius:8px;
                                      font-size:14px; font-weight:600; }
             QPushButton#primaryBtn:hover    { background:@accentHover; }
             QPushButton#primaryBtn:disabled { background:#D8D0F5; color:#F8F7FF; }
+            QPushButton#primaryBtn:focus { border:2px solid #A5B4FC; }
 
-            QPushButton#secondaryBtn { background:white; color:@text; border:1px solid #CFC7EE; border-radius:6px;
-                                       padding:0 16px; font-size:14px; }
-            QPushButton#secondaryBtn:hover    { background:#F1EEFF; }
-            QPushButton#secondaryBtn:disabled { color:#B3AECB; background:#F5F3FC; border:1px solid #E7E3F5; }
+            QPushButton#secondaryBtn { background:white; color:@text; border:1px solid #D5DCE8; border-radius:8px;
+                                       padding:0 16px; font-size:13px; font-weight:600; }
+            QPushButton#secondaryBtn:hover    { background:#F8FAFF; border-color:#AAB6CC; }
+            QPushButton#secondaryBtn:disabled { color:#98A2B3; background:#F8FAFC; border:1px solid #E8ECF2; }
+            QPushButton#secondaryBtn:focus { border:2px solid #A5B4FC; }
 
-            QLineEdit#digitBox { background:white; border:1px solid #CFC7EE; border-radius:6px; color:@text;
-                                 font-family:Consolas,'Courier New',monospace; font-size:26px;
+            QLineEdit#digitBox { background:white; border:1px solid #D5DCE8; border-radius:8px; color:@text;
+                                 font-family:Consolas,'Courier New',monospace; font-size:27px; font-weight:600;
                                  selection-background-color:@accent; }
+            QLineEdit#digitBox:hover { border-color:#AAB6CC; }
             QLineEdit#digitBox:focus { border:2px solid @accent; }
-            QLineEdit#digitBox[bad="true"] { border:2px solid @bad; }
+            QLineEdit#digitBox[bad="true"] { border:2px solid @bad; background:#FFFBFA; }
 
-            QFrame#footer  { background:@text; border-top:1px solid @border; }
-            QFrame#footer QLabel#muted { color:@soft; }
+            QFrame#footer  { background:white; border-top:1px solid @border; }
+            QFrame#footer QLabel#muted { color:@muted; font-size:11px; font-weight:600; }
             QLabel#footMsg { font-size:13px; }
         )";
         css.replace("@accentLight", kAccentLight).replace("@accentHover", kAccentHover)
@@ -838,6 +854,6 @@ private:
 QWidget* createMainWindow(const UiBackend& backend)
 {
     auto* w = new MainWindow(backend);
-    w->resize(1040, 700);
+    w->resize(1080, 720);
     return w;
 }
