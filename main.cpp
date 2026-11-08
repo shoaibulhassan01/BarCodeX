@@ -8,7 +8,7 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-#include <iostream>
+#include <iostream>   // pushing testing code into main.cpp for now, will move to a separate test file later    
 
 int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
