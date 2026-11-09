@@ -11,6 +11,7 @@ qt_standard_project_setup()
 
 qt_add_executable(BarCodeX
     main.cpp
+    ui/ui.cpp
     scanner/scanner.cpp
 )
 

@@ -1,55 +1,55 @@
-#include "scanner/scanner.h"
+// main.cpp  -  BarcodeX entry point
+// Starts Qt, connects the UI to the barcode code, and shows the window.
+//
+// The UI itself lives in ui/ui.cpp. The only job of this file is to hand it
+// the two functions it needs (generate and decode).
+
+#include <memory>
 
 #include <QApplication>
-#include <QHBoxLayout>
 #include <QImage>
-#include <QLabel>
-#include <QPixmap>
-#include <QVBoxLayout>
+#include <QString>
 #include <QWidget>
 
-#include <iostream>   // pushing testing code into main.cpp for now, will move to a separate test file later    
+#include "ui/ui.h"
 
-int main(int argc, char* argv[]) {
+// ---------------------------------------------------------------------
+//  Connection points for the team.
+//  Replace the body of each function with calls to the real modules:
+//    generate :  encoder (digits -> patterns)  ->  generator (patterns -> image)
+//    decode   :  scanner (image -> run widths) ->  decoder   (run widths -> digits)
+// ---------------------------------------------------------------------
+
+// digits: exactly 6 digits, first digit is 1-9.
+// Return true and fill imgOut on success, otherwise return false and set errorOut.
+static bool generateBarcode(const QString &digits, QImage &imgOut, QString &errorOut)
+{
+    Q_UNUSED(digits);
+    Q_UNUSED(imgOut);
+    errorOut = "Generator not connected yet";   // PLACEHOLDER
+    return false;
+}
+
+// img: the image the user opened.
+// Return true and fill digitsOut (6 digits) on success, otherwise return false and set errorOut.
+static bool decodeBarcode(const QImage &img, QString &digitsOut, QString &errorOut)
+{
+    Q_UNUSED(img);
+    Q_UNUSED(digitsOut);
+    errorOut = "Decoder not connected yet";     // PLACEHOLDER
+    return false;
+}
+
+int main(int argc, char *argv[])
+{
     QApplication app(argc, argv);
 
-    const string imagePath = "tests/cat.jpeg";
-    QImage original(QString::fromStdString(imagePath));
-    if (original.isNull()) {
-        std::cerr << "Could not load " << imagePath << std::endl;
-        return 1;
-    }
+    UiBackend backend;
+    backend.generate = generateBarcode;
+    backend.decode   = decodeBarcode;
 
-    Image gray = loadImage(imagePath);
-    if (gray.width == 0 || gray.height == 0) {
-        std::cerr << "Scanner could not read " << imagePath << std::endl;
-        return 1;
-    }
-    Image bw = makeBlackWhite(gray);
-
-    QWidget window;
-    window.setWindowTitle("Color, Grayscale, and Black-and-White Comparison");
-
-    auto* comparison = new QHBoxLayout;
-    const QImage images[] = {original, toQImage(gray), toQImage(bw)};
-    const QString titles[] = {"Original (color)", "Grayscale", "Black and white"};
-
-    for (int i = 0; i < 3; ++i) {
-        auto* panel = new QVBoxLayout;
-        auto* title = new QLabel(titles[i]);
-        auto* preview = new QLabel;
-        preview->setAlignment(Qt::AlignCenter);
-        preview->setPixmap(QPixmap::fromImage(images[i]).scaled(
-            360, 280, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-        preview->setFixedSize(370, 290);
-        panel->addWidget(title);
-        panel->addWidget(preview);
-        comparison->addLayout(panel);
-    }
-
-    window.setLayout(comparison);
-    window.resize(1170, 350);
-    window.show();
+    std::unique_ptr<QWidget> window(createMainWindow(backend));
+    window->show();
 
     return app.exec();
 }
