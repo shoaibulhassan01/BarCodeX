@@ -12,17 +12,17 @@ Image makeBlackWhite(Image img);
 
 // Run widths along one row, from the first black pixel to the last black pixel.
 // First run is a bar, last run is a bar. Empty vector if the row is bad or has no black.
-vector<int> getRuns(const Image& img, int row);
+std::vector<int> getRuns(const Image& img, int row);
 
 // Convert the runs from getRuns() into a string ("nwnwwnw...") to be passed to the decoder.
-string runsToString(const vector<int>& runs);
+std::string runsToString(const std::vector<int>& runs);
 
 // Check if the uploaded image generates a valid Code-39 N/W string pattern.
-bool validPattern(const string& pattern);  
+bool validPattern(const std::string& pattern);  
 
-// A single callable function for the decoder modue (Anas) that directly converts a QImage object
+// A single callable function for the decoder module that directly converts a QImage object
 // to an N/W string to be decoded into a 6-digit number.
-string imageToString(const QImage& file);
+std::string imageToString(const QImage& file);
 
 // To scan a barcode directly from a desktop/laptop camera.
 Image scanFromCamera();
