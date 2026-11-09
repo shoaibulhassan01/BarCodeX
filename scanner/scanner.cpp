@@ -1,6 +1,7 @@
 #include "../common/common.h"
 #include "scanner.h"
 #include <QImage>
+using namespace std;
 
 Image makeGrayScale(const QImage& file) {
     Image img;
@@ -141,13 +142,23 @@ static string tryRow(const Image& img, int row) {
     return "";
 }
 
-string imageToString(const QImage& qimg) {
-    Image img = makeBlackWhite(makeGrayScale(qimg));
+// Rotate a gray/black-white image 90 degrees clockwise.
+static Image rotate90(const Image& img) {
+    Image result;
+    result.width = img.height;
+    result.height = img.width;
+    result.pixels.resize(img.pixels.size());
 
-    if (img.width == 0 || img.height == 0) {
-        return "";
+    for (int y = 0; y < img.height; y++) {
+        for (int x = 0; x < img.width; x++) {
+            result.pixels[x * result.width + (img.height - 1 - y)] = img.pixels[y * img.width + x];
+        }
     }
+    return result;
+}
 
+// Scan the middle row and rows above and below it, up to 1/5 of the image height.
+static string scanRows(const Image& img) {
     int middle = img.height / 2;
     int limit = img.height / 5;
 
@@ -162,8 +173,27 @@ string imageToString(const QImage& qimg) {
                 return s;
         }
     }
-
     return "";
+}
+
+string imageToString(const QImage& qimg) {
+    Image img = makeBlackWhite(makeGrayScale(qimg));
+
+    if (img.width == 0 || img.height == 0)
+        return "";
+
+    string s = scanRows(img);
+    if (s != "")
+        return s;
+
+    for (int turn = 1; turn <= 3; turn++) {
+        img = rotate90(img);  // rotate 90 degrees clockwise at each turn
+        s = scanRows(img);
+        if (s != "")
+            return s;
+    }
+
+    return "";  // no valid N/W string found in any orientation
 }
 
 Image scanFromCamera() {
