@@ -1,23 +1,27 @@
-
 #include "../common/common.h"
 #include "decoder.h"
 
-#include <iostream>
-#include <map>
 #include <algorithm>
-#include <cmath>
-#include <limits>
+#include <cctype>
+#include <map>
+#include <string>
 
 using namespace std;
 
 namespace
 {
-    // Code 39 constants
     const int ELEMENTS_PER_CHARACTER = 9;
     const int REQUIRED_DIGITS = 6;
     const int TOTAL_CHARACTERS = REQUIRED_DIGITS + 2;
 
-    // Code 39 numeric lookup table
+    // 8 characters * 9 elements + 7 gaps = 79
+    const int PATTERN_WITH_GAPS =
+        TOTAL_CHARACTERS * ELEMENTS_PER_CHARACTER + (TOTAL_CHARACTERS - 1);
+
+    // 8 characters * 9 elements = 72 (agar scanner gaps na bheje)
+    const int PATTERN_WITHOUT_GAPS =
+        TOTAL_CHARACTERS * ELEMENTS_PER_CHARACTER;
+
     const map<string, char> CODE39_TABLE =
     {
         {"nnnwwnwnn", '0'},
@@ -34,260 +38,146 @@ namespace
 
     const string START_STOP_PATTERN = "nwnnwnwnn";
 
-    // Automatically identify narrow and wide widths
-    bool findWidthGroups(
-        const vector<int>& runs,
-        double& narrowWidth,
-        double& wideWidth,
-        string& error)
+    // Sirf n aur w rakhta hai (spaces, commas, capital letters theek kar deta hai)
+    string cleanPattern(const string& raw)
     {
-        int minimum = numeric_limits<int>::max();
-        int maximum = 0;
+        string cleaned;
 
-        for (int width : runs)
+        for (char c : raw)
         {
-            if (width <= 0)
-            {
-                error = "Invalid run width.";
-                return false;
-            }
+            char lower = static_cast<char>(
+                tolower(static_cast<unsigned char>(c)));
 
-            minimum = min(minimum, width);
-            maximum = max(maximum, width);
+            if (lower == 'n' || lower == 'w')
+            {
+                cleaned += lower;
+            }
         }
 
-        if (minimum == maximum)
-        {
-            error = "Cannot distinguish narrow and wide widths.";
-            return false;
-        }
-
-        double center1 = minimum;
-        double center2 = maximum;
-
-        // Two-group clustering
-        for (int iteration = 0; iteration < 50; iteration++)
-        {
-            double sum1 = 0;
-            double sum2 = 0;
-
-            int count1 = 0;
-            int count2 = 0;
-
-            for (int width : runs)
-            {
-                if (abs(width - center1) <=
-                    abs(width - center2))
-                {
-                    sum1 += width;
-                    count1++;
-                }
-                else
-                {
-                    sum2 += width;
-                    count2++;
-                }
-            }
-
-            if (count1 == 0 || count2 == 0)
-            {
-                error = "Unable to classify run widths.";
-                return false;
-            }
-
-            double newCenter1 = sum1 / count1;
-            double newCenter2 = sum2 / count2;
-
-            if (abs(newCenter1 - center1) < 0.001 &&
-                abs(newCenter2 - center2) < 0.001)
-            {
-                center1 = newCenter1;
-                center2 = newCenter2;
-                break;
-            }
-
-            center1 = newCenter1;
-            center2 = newCenter2;
-        }
-
-        narrowWidth = min(center1, center2);
-        wideWidth = max(center1, center2);
-
-        double ratio = wideWidth / narrowWidth;
-
-        if (ratio < 1.7 || ratio > 3.5)
-        {
-            error = "Invalid narrow/wide width ratio.";
-            return false;
-        }
-
-        return true;
+        return cleaned;
     }
 
-    // Convert nine run widths into an N/W pattern
-    bool createPattern(
-        const vector<int>& runs,
-        int startIndex,
-        double narrowWidth,
-        double wideWidth,
-        string& pattern,
+    // Saaf string ko digits mein badalta hai
+    bool decodeCleanPattern(
+        const string& pattern,
+        string& decoded,
         string& error)
     {
-        pattern.clear();
+        decoded.clear();
 
-        int wideCount = 0;
+        int length = static_cast<int>(pattern.size());
+        bool hasGaps = false;
 
-        for (int i = 0; i < ELEMENTS_PER_CHARACTER; i++)
+        if (length == PATTERN_WITH_GAPS)
         {
-            int width = runs[startIndex + i];
+            hasGaps = true;
+        }
+        else if (length == PATTERN_WITHOUT_GAPS)
+        {
+            hasGaps = false;
+        }
+        else
+        {
+            error = "Invalid barcode pattern length.";
+            return false;
+        }
 
-            if (abs(width - narrowWidth) <
-                abs(width - wideWidth))
+        int step = hasGaps
+            ? ELEMENTS_PER_CHARACTER + 1
+            : ELEMENTS_PER_CHARACTER;
+
+        for (int characterIndex = 0;
+             characterIndex < TOTAL_CHARACTERS;
+             characterIndex++)
+        {
+            int startIndex = characterIndex * step;
+
+            string symbol =
+                pattern.substr(startIndex, ELEMENTS_PER_CHARACTER);
+
+            // Har Code 39 character mein theek 3 wide hote hain
+            int wideCount = static_cast<int>(
+                count(symbol.begin(), symbol.end(), 'w'));
+
+            if (wideCount != 3)
             {
-                pattern += 'n';
+                error = "Invalid Code 39 character pattern.";
+                return false;
+            }
+
+            if (characterIndex == 0)
+            {
+                if (symbol != START_STOP_PATTERN)
+                {
+                    error = "Invalid barcode start symbol.";
+                    return false;
+                }
+            }
+            else if (characterIndex == TOTAL_CHARACTERS - 1)
+            {
+                if (symbol != START_STOP_PATTERN)
+                {
+                    error = "Invalid barcode stop symbol.";
+                    return false;
+                }
             }
             else
             {
-                pattern += 'w';
-                wideCount++;
-            }
-        }
+                auto found = CODE39_TABLE.find(symbol);
 
-        // Every Code 39 character has three wide elements
-        if (wideCount != 3)
-        {
-            error = "Invalid Code 39 character pattern.";
-            return false;
+                if (found == CODE39_TABLE.end())
+                {
+                    error = "Unknown Code 39 pattern.";
+                    return false;
+                }
+
+                decoded += found->second;
+            }
+
+            // Characters ke beech ka gap patla (n) hona chahiye
+            if (hasGaps && characterIndex < TOTAL_CHARACTERS - 1)
+            {
+                if (pattern[startIndex + ELEMENTS_PER_CHARACTER] != 'n')
+                {
+                    error = "Invalid character spacing.";
+                    return false;
+                }
+            }
         }
 
         return true;
     }
 }
 
-// Main Decoder function
-bool decodeRuns(vector<int> runs, string &text, string &error)
+// Main Decoder function: N/W string se 6 digits nikalta hai
+bool decodeRuns(string pattern, string &text, string &error)
 {
-    cout << "[decoder] hello, runs = "
-         << runs.size() << endl;
-
     text.clear();
     error.clear();
 
-    // Start + 6 digits + Stop
-    // 8 characters * 9 elements + 7 gaps = 79 runs
-    const int expectedRuns =
-        TOTAL_CHARACTERS * ELEMENTS_PER_CHARACTER
-        + (TOTAL_CHARACTERS - 1);
-
-    if (static_cast<int>(runs.size()) != expectedRuns)
-    {
-        error = "Invalid barcode run count.";
-        return false;
-    }
-
-    // Find narrow and wide widths
-    double narrowWidth = 0;
-    double wideWidth = 0;
-
-    if (!findWidthGroups(
-            runs,
-            narrowWidth,
-            wideWidth,
-            error))
-    {
-        return false;
-    }
+    string cleaned = cleanPattern(pattern);
 
     string decoded;
+    string firstError;
 
-    // Decode all eight Code 39 characters
-    for (int characterIndex = 0;
-         characterIndex < TOTAL_CHARACTERS;
-         characterIndex++)
+    // Pehli koshish: seedha parho
+    if (decodeCleanPattern(cleaned, decoded, firstError))
     {
-        int startIndex =
-            characterIndex * (ELEMENTS_PER_CHARACTER + 1);
-
-        string pattern;
-
-        if (!createPattern(
-                runs,
-                startIndex,
-                narrowWidth,
-                wideWidth,
-                pattern,
-                error))
-        {
-            return false;
-        }
-
-        // Verify start symbol
-        if (characterIndex == 0)
-        {
-            if (pattern != START_STOP_PATTERN)
-            {
-                error = "Invalid barcode start symbol.";
-                return false;
-            }
-        }
-
-        // Verify stop symbol
-        else if (characterIndex == TOTAL_CHARACTERS - 1)
-        {
-            if (pattern != START_STOP_PATTERN)
-            {
-                error = "Invalid barcode stop symbol.";
-                return false;
-            }
-        }
-
-        // Decode numeric characters
-        else
-        {
-            auto found = CODE39_TABLE.find(pattern);
-
-            if (found == CODE39_TABLE.end())
-            {
-                error = "Unknown Code 39 pattern.";
-                return false;
-            }
-
-            decoded += found->second;
-        }
-
-        // Check inter-character gap
-        if (characterIndex < TOTAL_CHARACTERS - 1)
-        {
-            int gapIndex =
-                startIndex + ELEMENTS_PER_CHARACTER;
-
-            if (runs[gapIndex] >
-                (narrowWidth + wideWidth) / 2.0)
-            {
-                error = "Invalid character spacing.";
-                return false;
-            }
-        }
+        text = decoded;
+        return true;
     }
 
-    // Validate final decoded result
-    if (decoded.size() != REQUIRED_DIGITS)
+    // Doosri koshish: barcode ulta scan hua ho toh string ulta kar ke parho
+    reverse(cleaned.begin(), cleaned.end());
+
+    string secondError;
+
+    if (decodeCleanPattern(cleaned, decoded, secondError))
     {
-        error = "Decoded result must contain exactly six digits.";
-        return false;
+        text = decoded;
+        return true;
     }
 
-    for (char digit : decoded)
-    {
-        if (digit < '0' || digit > '9')
-        {
-            error = "Decoded result contains invalid characters.";
-            return false;
-        }
-    }
-
-    text = decoded;
-    error.clear();
-
-    return true;
+    error = firstError;
+    return false;
 }
