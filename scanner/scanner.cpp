@@ -17,7 +17,6 @@ Image makeGrayScale(const QImage& file) {
 }
 
 Image makeBlackWhite(Image img) {
-    // TODO: Improve this function (probably use Otsu's method of local thresholding)
     for (int i = 0; i < (int)img.pixels.size(); i++) {
         img.pixels[i] = (img.pixels[i] < 128) ? 0 : 255;
     }
@@ -59,16 +58,40 @@ vector<int> getRuns(const Image& img, int row) {
 string runsToString(const vector<int>& runs) {
     string s;
 
-    if (runs.empty()) {
+    if (runs.empty())
         return s;
-    }
 
-    int narrowBar = runs[0];  // first run is a narrow black bar
+   // smallest and largest run, separately for bars (even index) and spaces (odd index).
+    int minBar = runs[0];
+    int maxBar = runs[0];
+    int minSpace = -1;
+    int maxSpace = -1;
 
     for (int i = 0; i < (int)runs.size(); i++) {
-         if (runs[i] * 2 <= narrowBar * 3)   // up to 1.5 times the narrow bar counts as narrow 
+        if (i % 2 == 0) {
+            if (runs[i] < minBar)
+                minBar = runs[i];
+            if (runs[i] > maxBar)
+                maxBar = runs[i];
+        }
+        else {
+            if (minSpace == -1 || runs[i] < minSpace)
+                minSpace = runs[i];
+            if (runs[i] > maxSpace)
+                maxSpace = runs[i];
+        }
+    }
+
+    // The threshold for a narrow bar/space is the average of the smallest and largest run of that type.
+    int barCut = minBar + maxBar;
+    int spaceCut = minSpace + maxSpace;
+
+    for (int i = 0; i < (int)runs.size(); i++) {
+        int cut = (i % 2 == 0) ? barCut : spaceCut;
+
+        if (runs[i] * 2 <= cut)  // narrow <= (min + max) / 2
             s.push_back('n');
-        else
+        else 
             s.push_back('w');
     }
     return s;
