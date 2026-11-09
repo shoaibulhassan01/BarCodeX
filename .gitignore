@@ -44,6 +44,21 @@ object_script.*
 .idea/
 .vs/
 *.swp
+<<<<<<< HEAD
+
+# vcpkg
+vcpkg_installed/
+
+# debug information files
+*.dwo
+
+# test output & cache
+Testing/
+.cache/
+
+.vs/
+=======
 *~
 .DS_Store
 Thumbs.db
+>>>>>>> main
