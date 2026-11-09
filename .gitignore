@@ -1,61 +1,50 @@
-# Prerequisites
-*.d
+# Hamara program
+barcodex
+barcodex.exe
 
-# Compiled Object files
-*.slo
-*.lo
+# Build folders
+build/
+build-*/
+Debug/
+Release/
+debug/
+release/
+out/
+
+# Qt Creator ki personal files
+*.user
+*.user.*
+*.autosave
+*.pro.user
+CMakeLists.txt.user*
+
+# Compile hui files
 *.o
 *.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Linker files
-*.ilk
-
-# Debugger Files
-*.pdb
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
+*.exe
 *.dll
-*.so.*
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
+*.so
 *.a
 *.lib
+*.pdb
+*.ilk
 
-# Executables
-*.exe
-*.out
-*.app
+# Qt khud banata hai
+moc_*
+ui_*.h
+qrc_*.cpp
+*.moc
+Makefile*
+.qmake.stash
+.qmake.cache
+object_script.*
 
-# Build directories
-build/
-Build/
-build-*/
-
-# CMake generated files
-CMakeFiles/
-CMakeCache.txt
-cmake_install.cmake
-Makefile
-install_manifest.txt
-compile_commands.json
-
-# Temporary files
-*.tmp
-*.log
-*.bak
+# Editor aur system ki faltu files
+.vscode/
+.idea/
+.vs/
 *.swp
+<<<<<<< HEAD
 
 # vcpkg
 vcpkg_installed/
@@ -68,3 +57,8 @@ Testing/
 .cache/
 
 .vs/
+=======
+*~
+.DS_Store
+Thumbs.db
+>>>>>>> main

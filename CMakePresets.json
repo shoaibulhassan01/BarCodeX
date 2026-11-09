@@ -1,0 +1,22 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "qt-mingw",
+      "displayName": "Qt 6 - MinGW",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/BarCodeX",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "$env{CMAKE_CXX_COMPILER}",
+        "CMAKE_MAKE_PROGRAM": "$env{CMAKE_MAKE_PROGRAM}",
+        "CMAKE_PREFIX_PATH": "$env{CMAKE_PREFIX_PATH}"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "qt-mingw-build",
+      "configurePreset": "qt-mingw"
+    }
+  ]
+}
