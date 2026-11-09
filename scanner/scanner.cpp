@@ -24,84 +24,34 @@ Image makeBlackWhite(Image img) {
     return img;
 }
 
-// Helper for findRow()
-int countTransitions(const Image& img, int row) {
-    if (row < 0 || row >= img.height)
-        return 0;
-
-    int count = 0;
-     for (int x = 1; x < img.width; x++) {
-        if (img.pixels[row * img.width + (x - 1)] != img.pixels[row * img.width + x])
-            count++;
-     }
-     return count;
-}
-
-// Helper for getRuns()
-int findRow(const Image& img) {
-    int count = 0;
-    int startRow = 0;
-    bool found = false;
-
-     for (int y = 0; y < img.height; y++) {
-        count = countTransitions(img, y);
-
-        if (count == 80) {
-            startRow = y;
-            found = true;
-            break;
-        }
-    } 
-
-    return found ? startRow : -1;
-}
-
-vector<int> getRuns(const Image& img) {
+vector<int> getRuns(const Image& img, int row) {
     vector<int> runs;
-    int row = findRow(img);
 
     if (row < 0 || row >= img.height)
-        return runs;  // return empty vector
- 
-    int count = 0;
-    bool isBlack = false;
-    bool first = false;
+        return runs;
 
+    int start = -1;
+    int end = -1;
     for (int x = 0; x < img.width; x++) {
-        if (!first) {  // first pixel should be black
-            if (img.pixels[row * img.width + x] == 0) {
-                isBlack = true;
-                count++;
-                first = true;
-                continue;
-            }
-            continue;
-        }
-
         if (img.pixels[row * img.width + x] == 0) {
-            if (isBlack) {
-                count++;
-            }
-            else {
-                isBlack = true;
-                runs.push_back(count);  // push old run first
-                count = 1;
-            }
-        }
-        else {
-            if (!isBlack) {
-                count++;
-            }
-            else {
-                isBlack = false;
-                runs.push_back(count);
-                count = 1;
-            }
+            if (start == -1)
+                start = x;
+            end = x;
         }
     }
-
-    if (isBlack)
-        runs.push_back(count);  // push last run only if black
+    if (start == -1)
+        return runs;  // no black pixel on this row
+    
+    int count = 1;
+    for (int x = start + 1; x <= end; x++) {
+        if (img.pixels[row * img.width + x] == img.pixels[row * img.width + x - 1])
+            count++;
+        else {
+            runs.push_back(count);
+            count = 1;
+        }
+    }
+    runs.push_back(count);
 
     return runs;
 }
@@ -155,17 +105,42 @@ bool validPattern(const string& pattern) {
     return true;
 }
 
-string imageToString(const QImage& file) {
-    Image img = makeGrayScale(file);
-    img = makeBlackWhite(img);
-
-    vector<int> runs = getRuns(img);
-    string pattern = runsToString(runs);
-
-    if (!validPattern(pattern))
+// Try one row. Returns a valid 79-letter N/W string, or "" if this row fails.
+static string tryRow(const Image& img, int row) {
+    vector<int> runs = getRuns(img, row);
+    if (runs.size() != 79)  // cheap early exit, real validation by validPattern()
         return "";
 
-    return pattern;
+    string s = runsToString(runs);
+    if (validPattern(s))
+        return s;
+
+    return "";
+}
+
+string imageToString(const QImage& qimg) {
+    Image img = makeBlackWhite(makeGrayScale(qimg));
+
+    if (img.width == 0 || img.height == 0) {
+        return "";
+    }
+
+    int middle = img.height / 2;
+    int limit = img.height / 5;
+
+    for (int offset = 0; offset <= limit; offset++) {
+        string s = tryRow(img, middle + offset);
+        if (s != "")
+            return s;
+
+        if (offset > 0) {
+            s = tryRow(img, middle - offset);
+            if (s != "")
+                return s;
+        }
+    }
+
+    return "";
 }
 
 Image scanFromCamera() {
