@@ -10,15 +10,9 @@ Image makeGrayScale(const QImage& file);
 // Convert a grayscale image to black and white using a threshold of 128.
 Image makeBlackWhite(Image img);
 
-// Count changes between adjacent pixels on a row.
-int countTransitions(const Image& img, int line);
-
-// Find the first row in the image that has exactly 80 transitions (first row of barcode).
-int findRow(const Image& img);
-
-// Calculate the widths of black bars and white spaces on the first row of barcode.
-// Note: This function assumes a valid Code-39 barcode image.
-vector<int> getRuns(const Image& img);
+// Run widths along one row, from the first black pixel to the last black pixel.
+// First run is a bar, last run is a bar. Empty vector if the row is bad or has no black.
+vector<int> getRuns(const Image& img, int row);
 
 // Convert the runs from getRuns() into a string ("nwnwwnw...") to be passed to the decoder.
 string runsToString(const vector<int>& runs);
