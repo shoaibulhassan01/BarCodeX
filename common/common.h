@@ -9,7 +9,7 @@ class Image {
 public:
     int width;
     int height;
-    std::vector<int> pixels;
+    vector<int> pixels;
 
     Image() {
         width = 0;
