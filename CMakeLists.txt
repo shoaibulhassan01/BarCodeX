@@ -12,7 +12,10 @@ qt_standard_project_setup()
 qt_add_executable(BarCodeX
     main.cpp
     ui/ui.cpp
+    encoder/encoder.cpp
+    generator/generator.cpp
     scanner/scanner.cpp
+    decoder/decoder.cpp
 )
 
 target_link_libraries(BarCodeX PRIVATE Qt6::Widgets)

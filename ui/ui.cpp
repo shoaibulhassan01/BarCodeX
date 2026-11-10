@@ -29,6 +29,9 @@
 #include <QDropEvent>
 #include <QMimeData>
 #include <QUrl>
+#include <QFont>
+#include <QGraphicsDropShadowEffect>
+#include <QLinearGradient>
 #include <QPainter>
 #include <QPixmap>
 #include <QImage>
@@ -46,9 +49,9 @@ static const bool kBlockLeadingZero = true;
 static const char* kAccent = "#4F46E5";
 static const char* kAccentHover = "#4338CA";
 static const char* kAccentLight = "#EEF2FF";
-static const char* kBackground = "#F5F7FB";
-static const char* kBorder = "#E2E8F0";
-static const char* kText = "#172033";
+static const char* kBackground = "#F4F6FA";
+static const char* kBorder = "#E5E9F2";
+static const char* kText = "#182235";
 static const char* kMuted = "#667085";
 static const char* kSoft = "#A5B4FC";
 static const char* kOk = "#16804A";
@@ -63,25 +66,39 @@ static const char* kBadBorder = "#F2C2BE";
 // =====================================================================
 static QPixmap makeLogo(int s)
 {
-    QPixmap pm(s, s);
+    constexpr qreal scale = 3.0;
+    QPixmap pm(qRound(s * scale), qRound(s * scale));
+    pm.setDevicePixelRatio(scale);
     pm.fill(Qt::transparent);
     QPainter p(&pm);
     p.setRenderHint(QPainter::Antialiasing);
-    p.setPen(Qt::NoPen);
-    p.setBrush(QColor(kAccent));
-    p.drawRoundedRect(QRectF(0, 0, s, s), s * 0.2, s * 0.2);
+    p.setRenderHint(QPainter::SmoothPixmapTransform);
 
-    static const int units[] = { 2, 1, 1, 1, 3, 1, 1, 1, 2, 1, 3, 1, 1, 1, 2 };
+    QLinearGradient background(0, 0, s, s);
+    background.setColorAt(0, QColor("#343DAF"));
+    background.setColorAt(1, QColor("#635BEB"));
+    p.setPen(Qt::NoPen);
+    p.setBrush(background);
+    p.drawRoundedRect(QRectF(1, 1, s - 2, s - 2), s * 0.24, s * 0.24);
+
+    p.setPen(QPen(QColor(255, 255, 255, 48), qMax(1.0, s * 0.025)));
+    p.setBrush(Qt::NoBrush);
+    p.drawRoundedRect(QRectF(2, 2, s - 4, s - 4), s * 0.21, s * 0.21);
+
+    static const int units[] = { 2, 1, 1, 3, 1, 1, 2, 1, 3 };
     int total = 0;
     for (int u : units) total += u;
-    const double unit = (s * 0.56) / total;
-    double x = s * 0.22;
-    bool bar = true;
-    p.setBrush(Qt::white);
-    for (int u : units) {
-        if (bar) p.drawRect(QRectF(x, s * 0.25, u * unit, s * 0.50));
-        x += u * unit;
-        bar = !bar;
+    const qreal unit = (s * 0.56) / total;
+    qreal x = s * 0.22;
+    for (int i = 0; i < static_cast<int>(sizeof(units) / sizeof(units[0])); ++i) {
+        const qreal height = (i % 4 == 0) ? s * 0.48 : s * 0.58;
+        const qreal y = (s - height) / 2;
+        if (i % 2 == 0) {
+            p.setBrush(i == 8 ? QColor("#A5F3FC") : Qt::white);
+            p.drawRoundedRect(QRectF(x, y, qMax(1.4, units[i] * unit), height),
+                unit * 0.35, unit * 0.35);
+        }
+        x += units[i] * unit;
     }
     return pm;
 }
@@ -113,8 +130,8 @@ protected:
 
         const QRectF r = QRectF(rect()).adjusted(0.5, 0.5, -0.5, -0.5);
         p.setPen(QPen(QColor(kBorder), 1));
-        p.setBrush(QColor("#F1EEFB"));
-        p.drawRoundedRect(r, 8, 8);
+        p.setBrush(QColor("#F8FAFD"));
+        p.drawRoundedRect(r, 10, 10);
 
         const QRectF inner = r.adjusted(18, 18, -18, -18);
         if (img.isNull()) {
@@ -131,7 +148,7 @@ protected:
             t.moveCenter(inner.center());
             p.setPen(QPen(QColor(kBorder), 1));
             p.setBrush(Qt::white);
-            p.drawRect(t.adjusted(-4, -4, 4, 4));
+            p.drawRoundedRect(t.adjusted(-5, -5, 5, 5), 4, 4);
             p.drawImage(t, img);
         }
     }
@@ -286,6 +303,11 @@ private:
     {
         auto* c = new QFrame;
         c->setObjectName("card");
+        auto* shadow = new QGraphicsDropShadowEffect(c);
+        shadow->setBlurRadius(22);
+        shadow->setOffset(0, 4);
+        shadow->setColor(QColor(24, 34, 53, 14));
+        c->setGraphicsEffect(shadow);
         return c;
     }
 
@@ -367,6 +389,7 @@ private:
 
         auto* title = new QLabel("BarcodeX");
         title->setObjectName("appTitle");
+        title->setFont(QFont("Segoe UI", 23, QFont::DemiBold));
         titleBlock->addWidget(title);
 
         auto* sub = new QLabel("Barcode generation and image scanning");
@@ -501,8 +524,8 @@ private:
         valueBox = new QFrame;
         valueBox->setObjectName("valueBox");
         auto* vl = new QVBoxLayout(valueBox);
-        vl->setContentsMargins(16, 10, 12, 12);
-        vl->setSpacing(2);
+        vl->setContentsMargins(20, 20, 20, 18);
+        vl->setSpacing(12);
 
         auto* top = new QHBoxLayout;
         valueTitle = new QLabel("Decoded number");
@@ -523,7 +546,9 @@ private:
         vl->addLayout(top);
 
         valueDigits = new QLabel;
-        valueDigits->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+        valueDigits->setObjectName("decodedDigits");
+        valueDigits->setAlignment(Qt::AlignCenter);
+        valueDigits->setMinimumHeight(60);
         vl->addWidget(valueDigits);
         lay->addWidget(valueBox);
 
@@ -623,33 +648,32 @@ private:
     // ---------------- State display ----------------
     void setScanState(ScanState s, const QString& digits = QString(), const QString& msg = QString())
     {
-        QString bg, border, titleColor, digitColor, title = "Decoded number", status, statusColor;
-        QString shown = "- - - - - -", raw;
+        Q_UNUSED(msg);
+        QString digitState, status, statusColor;
+        QString shown = "------", raw;
         switch (s) {
         case ScanState::Idle:
-            bg = "#F8FAFC"; border = kBorder; titleColor = kMuted; digitColor = "#AAB4C5";
+            digitState = "idle";
             status = "Waiting"; statusColor = kMuted;
             break;
         case ScanState::Ok:
-            bg = kOkBg; border = kOkBorder; titleColor = kMuted; digitColor = kOk;
-            status = "Valid"; statusColor = kOk;
+            digitState = "success";
+            status = "Valid"; statusColor = kAccent;
             shown = digits; raw = digits;
             break;
         case ScanState::Bad:
-            bg = kBadBg; border = kBadBorder; titleColor = kBad; digitColor = "#D5A5A1";
-            title = msg.isEmpty() ? QString("No barcode found") : msg;
+            digitState = "error";
+            shown = "No match";
             status = "Invalid"; statusColor = kBad;
             break;
         }
 
-        valueBox->setStyleSheet(QString("QFrame#valueBox{background:%1;border:1px solid %2;border-radius:8px;}")
-            .arg(bg, border));
-        valueTitle->setText(title);
-        valueTitle->setStyleSheet(QString("color:%1;font-weight:600;").arg(titleColor));
+        valueTitle->setText("Decoded number");
         valueDigits->setText(shown);
         valueDigits->setProperty("rawDigits", raw);
-        valueDigits->setStyleSheet(QString("font-family:Consolas,'Courier New',monospace;"
-            "font-size:38px;font-weight:600;color:%1;").arg(digitColor));
+        valueDigits->setProperty("state", digitState);
+        valueDigits->style()->unpolish(valueDigits);
+        valueDigits->style()->polish(valueDigits);
         copyBtn->setEnabled(s == ScanState::Ok);
         scanStatusValue->setText(status);
         scanStatusValue->setStyleSheet(QString("color:%1;font-weight:600;").arg(statusColor));
@@ -796,32 +820,40 @@ private:
             QFrame#central { background:@bg; }
             QLabel { background:transparent; color:@text; font-size:14px; }
 
-            QLabel#appTitle { font-size:24px; font-weight:700; }
+            QLabel#appTitle { color:#172554; font-size:25px; font-weight:700; letter-spacing:0.2px; }
             QLabel#muted    { color:@muted; font-size:13px; }
             QLabel#headerBadge { color:@accent; background:@accentLight; border:1px solid #DDE3FF;
-                                 border-radius:12px; padding:7px 12px; font-size:11px; font-weight:700; }
-            QLabel#cardTitle{ font-size:17px; font-weight:600; }
+                                 border-radius:12px; padding:7px 12px; font-size:11px; font-weight:700; letter-spacing:0.5px; }
+            QLabel#cardTitle{ font-size:17px; font-weight:650; }
             QLabel#dzTitle  { font-size:17px; font-weight:600; }
             QLabel#infoKey  { color:@muted; font-size:14px; }
             QLabel#infoVal  { font-size:14px; }
             QLabel#errText  { color:@bad; font-size:13px; }
-            QLabel#valueTitle { font-size:14px; }
+            QLabel#valueTitle { color:#667085; font-size:12px; font-weight:700; letter-spacing:0.8px; }
+            QFrame#valueBox { background:#F8F9FD; border:1px solid @border; border-radius:12px; }
+            QLabel#decodedDigits { background:#F0F1F8; color:@muted; border-radius:9px;
+                                   padding:12px 10px; font-family:'Segoe UI',Arial,sans-serif;
+                                   font-size:16px; font-weight:600; }
+            QLabel#decodedDigits[state="success"] { background:#F0EFFF; color:@accent;
+                                                    font-family:Consolas,'Courier New',monospace;
+                                                    font-size:32px; font-weight:700; letter-spacing:3px; }
+            QLabel#decodedDigits[state="error"] { background:@badBg; color:@bad; }
 
-            QFrame#card { background:white; border:1px solid @border; border-radius:12px; }
+            QFrame#card { background:white; border:1px solid @border; border-radius:14px; }
             QFrame#line { background:@border; border:none; }
 
-            QFrame#dropZone { background:#FAFBFE; border:2px dashed #C8D0E0; border-radius:10px; }
+            QFrame#dropZone { background:#FBFCFE; border:2px dashed #C8D0E0; border-radius:12px; }
             QFrame#dropZone:hover { background:#F5F7FF; border:2px dashed @soft; }
             QFrame#dropZone[drag="true"] { background:@accentLight; border:2px dashed @accent; }
 
             QPushButton#tab { background:transparent; border:none; border-bottom:2px solid transparent;
-                              color:@muted; font-size:14px; padding:10px 5px; margin-right:24px; }
+                              color:@muted; font-size:14px; padding:11px 8px; margin-right:22px; }
             QPushButton#tab:hover { color:@text; }
             QPushButton#tab:checked { color:@accent; font-weight:700; border-bottom:2px solid @accent; }
             QPushButton#tab:focus { outline:none; }
 
             QPushButton#primaryBtn { background:@accent; color:white; border:none; border-radius:8px;
-                                     font-size:14px; font-weight:600; }
+                                     font-size:14px; font-weight:650; }
             QPushButton#primaryBtn:hover    { background:@accentHover; }
             QPushButton#primaryBtn:disabled { background:#D8D0F5; color:#F8F7FF; }
             QPushButton#primaryBtn:focus { border:2px solid #A5B4FC; }

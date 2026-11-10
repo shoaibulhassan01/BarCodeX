@@ -1,5 +1,5 @@
 #include "../common/common.h"
-#include "scanner.h"
+#include "./scanner.h"
 #include <QImage>
 using namespace std;
 

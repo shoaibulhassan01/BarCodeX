@@ -1,10 +1,10 @@
 #ifndef DECODER_H
 #define DECODER_H
 
-// OWNER: Anas
-// Runs (pehla number BAR ka) deta ho, text milta hai.
-// Kamyab ho to true aur text mein jawab.
-// Na hone par false aur error mein wajah. Program kabhi crash na ho.
-bool decodeRuns(vector<int> runs, string &text, string &error);
+#include <string>
+
+// Decode an N/W Code 39 pattern into text.
+// Returns true on success and false with an error message on failure.
+bool decodeRuns(std::string pattern, std::string &text, std::string &error);
 
 #endif
