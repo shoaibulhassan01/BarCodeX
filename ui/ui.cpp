@@ -37,7 +37,6 @@
 #include <QImage>
 #include <QIcon>
 #include <QStyle>
-#include <QTimer>
 #include <QRegularExpression>
 #include <QRegularExpressionValidator>
 
@@ -217,7 +216,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(const UiBackend& b) : backend(b)
     {
-        setWindowTitle("BarcodeX");
+        setWindowTitle("BarCodeX");
         setWindowIcon(QIcon(makeLogo(128)));
         setMinimumSize(940, 640);
         buildUi();
@@ -232,13 +231,13 @@ protected:
     {
         const int idx = indexOfBox(obj);
         if (idx >= 0) {
-            if (e->type() == QEvent::FocusIn) {
-                QLineEdit* box = boxes[idx];
-                QTimer::singleShot(0, box, &QLineEdit::selectAll);
-            }
-            else if (e->type() == QEvent::KeyPress) {
+            if (e->type() == QEvent::KeyPress) {
                 auto* ke = static_cast<QKeyEvent*>(e);
                 if (ke->matches(QKeySequence::Paste)) { pasteDigits(); return true; }
+                if (!boxes[idx]->text().isEmpty() && ke->text().size() == 1 &&
+                    ke->text().at(0) >= QLatin1Char('0') && ke->text().at(0) <= QLatin1Char('9')) {
+                    boxes[idx]->selectAll();
+                }
                 if (ke->key() == Qt::Key_Backspace && boxes[idx]->text().isEmpty() && idx > 0) {
                     boxes[idx - 1]->clear();
                     boxes[idx - 1]->setFocus();
@@ -387,7 +386,7 @@ private:
         auto* titleBlock = new QVBoxLayout;
         titleBlock->setSpacing(2);
 
-        auto* title = new QLabel("BarcodeX");
+        auto* title = new QLabel("BarCodeX");
         title->setObjectName("appTitle");
         title->setFont(QFont("Segoe UI", 23, QFont::DemiBold));
         titleBlock->addWidget(title);
@@ -589,6 +588,11 @@ private:
             boxes[i]->setFixedHeight(64);
             boxes[i]->setMinimumWidth(48);
             boxes[i]->installEventFilter(this);
+            connect(boxes[i], &QLineEdit::cursorPositionChanged, boxes[i],
+                    [box = boxes[i]](int, int position) {
+                if (position == 0 && !box->text().isEmpty())
+                    box->setCursorPosition(1);
+            });
             row->addWidget(boxes[i]);
 
             connect(boxes[i], &QLineEdit::textChanged, this, [this] { updateGenerateState(); });
