@@ -217,7 +217,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(const UiBackend& b) : backend(b)
     {
-        setWindowTitle("BarcodeX");
+        setWindowTitle("BarCodeX");
         setWindowIcon(QIcon(makeLogo(128)));
         setMinimumSize(940, 640);
         buildUi();
@@ -387,7 +387,7 @@ private:
         auto* titleBlock = new QVBoxLayout;
         titleBlock->setSpacing(2);
 
-        auto* title = new QLabel("BarcodeX");
+        auto* title = new QLabel("BarCodeX");
         title->setObjectName("appTitle");
         title->setFont(QFont("Segoe UI", 23, QFont::DemiBold));
         titleBlock->addWidget(title);
