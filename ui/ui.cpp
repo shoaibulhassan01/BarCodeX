@@ -22,6 +22,7 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QClipboard>
+#include <QKeySequence>
 #include <QKeyEvent>
 #include <QMouseEvent>
 #include <QDragEnterEvent>
@@ -224,11 +225,21 @@ public:
         setScanState(ScanState::Idle);
         setGenStatus(GenState::Ready);
         setStatus("Ready.", false);
+        QApplication::instance()->installEventFilter(this);
     }
 
 protected:
     bool eventFilter(QObject* obj, QEvent* e) override
     {
+        if (stack->currentIndex() == 0 && QApplication::activeWindow() == this &&
+            e->type() == QEvent::KeyPress) {
+            auto* ke = static_cast<QKeyEvent*>(e);
+            if (ke->matches(QKeySequence::Paste)) {
+                pasteClipboardImage();
+                return true;
+            }
+        }
+
         const int idx = indexOfBox(obj);
         if (idx >= 0) {
             if (e->type() == QEvent::KeyPress) {
@@ -308,6 +319,16 @@ private:
         shadow->setColor(QColor(24, 34, 53, 14));
         c->setGraphicsEffect(shadow);
         return c;
+    }
+
+    static QPushButton* makeRefreshButton(QWidget* parent, const QString& toolTip)
+    {
+        auto* button = new QPushButton("Refresh", parent);
+        button->setObjectName("secondaryBtn");
+        button->setCursor(Qt::PointingHandCursor);
+        button->setFixedSize(104, 34);
+        button->setToolTip(toolTip);
+        return button;
     }
 
     static void addCardTitle(QVBoxLayout* lay, const QString& title, const QString& hint = QString())
@@ -457,11 +478,22 @@ private:
     QWidget* buildScanPage()
     {
         auto* page = new QWidget;
-        auto* row = new QHBoxLayout(page);
-        row->setContentsMargins(0, 6, 0, 0);
-        row->setSpacing(20);
-        row->addWidget(buildUploadCard(), 1);
-        row->addWidget(buildResultCard(), 1);
+        auto* layout = new QVBoxLayout(page);
+        layout->setContentsMargins(0, 6, 0, 0);
+        layout->setSpacing(8);
+
+        auto* toolbar = new QHBoxLayout;
+        toolbar->addStretch();
+        auto* refresh = makeRefreshButton(page, "Clear the scanned image and result");
+        connect(refresh, &QPushButton::clicked, this, [this] { resetScanPage(); });
+        toolbar->addWidget(refresh);
+        layout->addLayout(toolbar);
+
+        auto* cards = new QHBoxLayout;
+        cards->setSpacing(20);
+        cards->addWidget(buildUploadCard(), 1);
+        cards->addWidget(buildResultCard(), 1);
+        layout->addLayout(cards, 1);
         return page;
     }
 
@@ -560,11 +592,22 @@ private:
     QWidget* buildGeneratePage()
     {
         auto* page = new QWidget;
-        auto* row = new QHBoxLayout(page);
-        row->setContentsMargins(0, 6, 0, 0);
-        row->setSpacing(20);
-        row->addWidget(buildInputCard(), 1);
-        row->addWidget(buildPreviewCard(), 1);
+        auto* layout = new QVBoxLayout(page);
+        layout->setContentsMargins(0, 6, 0, 0);
+        layout->setSpacing(8);
+
+        auto* toolbar = new QHBoxLayout;
+        toolbar->addStretch();
+        auto* refresh = makeRefreshButton(page, "Clear the number and generated barcode");
+        connect(refresh, &QPushButton::clicked, this, [this] { resetGeneratePage(); });
+        toolbar->addWidget(refresh);
+        layout->addLayout(toolbar);
+
+        auto* cards = new QHBoxLayout;
+        cards->setSpacing(20);
+        cards->addWidget(buildInputCard(), 1);
+        cards->addWidget(buildPreviewCard(), 1);
+        layout->addLayout(cards, 1);
         return page;
     }
 
@@ -703,6 +746,26 @@ private:
         if (generateBtn) generateBtn->setEnabled(!bad);
     }
 
+    void resetScanPage()
+    {
+        scanPreview->clear();
+        setScanState(ScanState::Idle);
+        setStatus("Ready.", false);
+    }
+
+    void resetGeneratePage()
+    {
+        for (QLineEdit* box : boxes)
+            box->clear();
+        currentBarcode = QImage();
+        genPreview->clear();
+        genPreview->setPlaceholder("Your barcode will be shown here.");
+        saveBtn->setEnabled(false);
+        setGenStatus(GenState::Ready);
+        setStatus("Ready.", false);
+        boxes[0]->setFocus();
+    }
+
     // ---------------- Actions ----------------
     void pasteDigits()
     {
@@ -772,6 +835,16 @@ private:
         if (!path.isEmpty()) loadImageFile(path);
     }
 
+    void pasteClipboardImage()
+    {
+        const QImage img = QApplication::clipboard()->image();
+        if (img.isNull()) {
+            setStatus("The clipboard doesn't contain an image.", true);
+            return;
+        }
+        processImage(img, "Clipboard image");
+    }
+
     void loadImageFile(const QString& path)
     {
         const QString ext = QFileInfo(path).suffix().toLower();
@@ -789,9 +862,14 @@ private:
             setStatus("The file couldn't be read as an image.", true);
             return;
         }
+        processImage(img, QFileInfo(path).fileName());
+    }
+
+    void processImage(const QImage& img, const QString& source)
+    {
         scanPreview->setImage(img);
 
-        const QString info = QString("%1 (%2 x %3 px)").arg(QFileInfo(path).fileName())
+        const QString info = QString("%1 (%2 x %3 px)").arg(source)
             .arg(img.width()).arg(img.height());
 
         QString digits, err;

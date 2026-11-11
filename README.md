@@ -69,12 +69,14 @@ MinGW installation.
 - **Input Validation:** Rejects empty input and unsupported characters.
 - **Barcode Image Generation:** Renders the encoded pattern as a barcode image.
 - **Image Export:** Saves the generated barcode image.
+- **Refresh:** Clears the entered number and generated barcode.
 
 ### Scanner
 
 - **Live Camera Scanning:** Captures barcode images using a laptop camera.
-- **Image Upload and Preview:** Selects a Qt-supported image file and displays
-  it with its dimensions; barcode decoding is not connected yet.
+- **Image Scanning:** Open an image file or paste a screenshot from the clipboard
+  with **Ctrl+V** on the Scan tab to preview and decode it.
+- **Refresh:** Clears the current image and scan result.
 - **Image Preprocessing:** Processes captured or uploaded images for barcode recognition.
 - **Run-Width Extraction:** Measures black and white element widths.
 - **Pattern Recognition:** Classifies narrow and wide elements and matches Code 39 patterns.
