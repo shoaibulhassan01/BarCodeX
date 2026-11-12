@@ -86,7 +86,7 @@ if not exist "%APP_EXE%" (
 )
 
 if exist "%QT_PREFIX_PATH%\bin\windeployqt.exe" (
-    "%QT_PREFIX_PATH%\bin\windeployqt.exe" --no-translations --compiler-runtime "%APP_EXE%"
+    "%QT_PREFIX_PATH%\bin\windeployqt.exe" --no-translations --compiler-runtime --add-plugin-types multimedia "%APP_EXE%"
     if errorlevel 1 (
         echo Qt runtime deployment failed.
         pause

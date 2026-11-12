@@ -15,6 +15,7 @@
 #include "decoder/decoder.h"
 #include "encoder/encoder.h"
 #include "generator/generator.h"
+#include "camera/camera_scanner.h"
 #include "scanner/scanner.h"
 #include "ui/ui.h"
 
@@ -56,22 +57,29 @@ static bool generateBarcodeForUi(const QString &digits, QImage &imgOut, QString 
 // Return true and fill digitsOut (6 digits) on success, otherwise return false and set errorOut.
 static bool decodeBarcode(const QImage &img, QString &digitsOut, QString &errorOut)
 {
+    // 1) Normal file decoder (exact, works for clean generated barcodes).
     const string pattern = imageToString(img);
-    if (pattern.empty()) {
-        errorOut = "No valid Code 39 barcode pattern was found in the image.";
-        return false;
+    if (!pattern.empty()) {
+        string digits;
+        string decodeError;
+        if (decodeRuns(pattern, digits, decodeError)) {
+            digitsOut = QString::fromStdString(digits);
+            errorOut.clear();
+            return true;
+        }
     }
 
-    string digits;
-    string decodeError;
-    if (!decodeRuns(pattern, digits, decodeError)) {
-        errorOut = QString::fromStdString(decodeError);
-        return false;
+    // 2) Fallback: the same robust scanner the camera uses (handles photos,
+    //    blur, uneven light and tilted barcodes).
+    QString cameraDigits;
+    if (CameraBarcodeScanner::decodeImage(img, cameraDigits)) {
+        digitsOut = cameraDigits;
+        errorOut.clear();
+        return true;
     }
 
-    digitsOut = QString::fromStdString(digits);
-    errorOut.clear();
-    return true;
+    errorOut = "No valid Code 39 barcode pattern was found in the image.";
+    return false;
 }
 
 int main(int argc, char *argv[])

@@ -49,3 +49,6 @@ object_script.*
 *~
 .DS_Store
 Thumbs.db
+
+#tests folder
+tests/
