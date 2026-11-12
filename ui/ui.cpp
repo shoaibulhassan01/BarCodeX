@@ -25,6 +25,7 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QClipboard>
+#include <QKeySequence>
 #include <QKeyEvent>
 #include <QMouseEvent>
 #include <QDragEnterEvent>
@@ -40,7 +41,6 @@
 #include <QImage>
 #include <QIcon>
 #include <QStyle>
-#include <QTimer>
 #include <QRegularExpression>
 #include <QRegularExpressionValidator>
 
@@ -220,7 +220,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(const UiBackend& b) : backend(b)
     {
-        setWindowTitle("BarcodeX");
+        setWindowTitle("BarCodeX");
         setWindowIcon(QIcon(makeLogo(128)));
         setMinimumSize(940, 640);
         buildUi();
@@ -270,13 +270,13 @@ protected:
 
         const int idx = indexOfBox(obj);
         if (idx >= 0) {
-            if (e->type() == QEvent::FocusIn) {
-                QLineEdit* box = boxes[idx];
-                QTimer::singleShot(0, box, &QLineEdit::selectAll);
-            }
-            else if (e->type() == QEvent::KeyPress) {
+            if (e->type() == QEvent::KeyPress) {
                 auto* ke = static_cast<QKeyEvent*>(e);
                 if (ke->matches(QKeySequence::Paste)) { pasteDigits(); return true; }
+                if (!boxes[idx]->text().isEmpty() && ke->text().size() == 1 &&
+                    ke->text().at(0) >= QLatin1Char('0') && ke->text().at(0) <= QLatin1Char('9')) {
+                    boxes[idx]->selectAll();
+                }
                 if (ke->key() == Qt::Key_Backspace && boxes[idx]->text().isEmpty() && idx > 0) {
                     boxes[idx - 1]->clear();
                     boxes[idx - 1]->setFocus();
@@ -442,7 +442,7 @@ private:
         auto* titleBlock = new QVBoxLayout;
         titleBlock->setSpacing(2);
 
-        auto* title = new QLabel("BarcodeX");
+        auto* title = new QLabel("BarCodeX");
         title->setObjectName("appTitle");
         title->setFont(QFont("Segoe UI", 23, QFont::DemiBold));
         titleBlock->addWidget(title);
@@ -703,11 +703,22 @@ private:
     QWidget* buildGeneratePage()
     {
         auto* page = new QWidget;
-        auto* row = new QHBoxLayout(page);
-        row->setContentsMargins(0, 6, 0, 0);
-        row->setSpacing(20);
-        row->addWidget(buildInputCard(), 1);
-        row->addWidget(buildPreviewCard(), 1);
+        auto* layout = new QVBoxLayout(page);
+        layout->setContentsMargins(0, 6, 0, 0);
+        layout->setSpacing(8);
+
+        auto* toolbar = new QHBoxLayout;
+        toolbar->addStretch();
+        auto* refresh = makeRefreshButton(page, "Clear the number and generated barcode");
+        connect(refresh, &QPushButton::clicked, this, [this] { resetGeneratePage(); });
+        toolbar->addWidget(refresh);
+        layout->addLayout(toolbar);
+
+        auto* cards = new QHBoxLayout;
+        cards->setSpacing(20);
+        cards->addWidget(buildInputCard(), 1);
+        cards->addWidget(buildPreviewCard(), 1);
+        layout->addLayout(cards, 1);
         return page;
     }
 
@@ -731,6 +742,11 @@ private:
             boxes[i]->setFixedHeight(64);
             boxes[i]->setMinimumWidth(48);
             boxes[i]->installEventFilter(this);
+            connect(boxes[i], &QLineEdit::cursorPositionChanged, boxes[i],
+                    [box = boxes[i]](int, int position) {
+                if (position == 0 && !box->text().isEmpty())
+                    box->setCursorPosition(1);
+            });
             row->addWidget(boxes[i]);
 
             connect(boxes[i], &QLineEdit::textChanged, this, [this] { updateGenerateState(); });
@@ -996,6 +1012,16 @@ private:
         const QString path = QFileDialog::getOpenFileName(this, "Choose a barcode image", QString(),
             "Images (*.png *.jpg *.jpeg *.bmp)");
         if (!path.isEmpty()) loadImageFile(path);
+    }
+
+    void pasteClipboardImage()
+    {
+        const QImage img = QApplication::clipboard()->image();
+        if (img.isNull()) {
+            setStatus("The clipboard doesn't contain an image.", true);
+            return;
+        }
+        processImage(img, "Clipboard image");
     }
 
     void loadImageFile(const QString& path)

@@ -2,7 +2,7 @@
 
 ---
 
-## 📋 Project Details
+## Project Details
 
 | Field | Details |
 |---|---|
@@ -22,7 +22,7 @@ The barcode encoder and decoder algorithms will be implemented from scratch. Cam
 
 ---
 
-## 👥 Team Members
+## Team Members
 
 | # | Name | Main Responsibility |
 |---|---|---|
@@ -34,7 +34,7 @@ The barcode encoder and decoder algorithms will be implemented from scratch. Cam
 
 ---
 
-## 🚀 Quick Start (Windows)
+## Quick Start (Windows)
 
 ### Prerequisites
 
@@ -59,7 +59,7 @@ MinGW installation.
 
 ---
 
-## ✨ Features
+## Features
 
 ### Generator
 
@@ -69,6 +69,7 @@ MinGW installation.
 - **Input Validation:** Rejects empty input and unsupported characters.
 - **Barcode Image Generation:** Renders the encoded pattern as a barcode image.
 - **Image Export:** Saves the generated barcode image.
+- **Refresh:** Clears the entered number and generated barcode.
 
 ### Scanner
 
@@ -83,7 +84,7 @@ MinGW installation.
 
 ---
 
-## 🛠️ Technologies Used
+## Technologies Used
 
 | Field | Details |
 |---|---|
@@ -97,7 +98,7 @@ MinGW installation.
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```text
 BarCodeX/
@@ -142,7 +143,7 @@ The application is a Qt Widgets desktop program. Image scanning and live camera 
 
 ---
 
-## 🔀 Team Branch and Commit Workflow
+## Team Branch and Commit Workflow
 
 `main` is the default branch. Each team member should work on their assigned `feature/<name>` branch, starting from the latest `main` branch.
 
@@ -186,7 +187,7 @@ The repository already has the five team feature branches. Repository access for
 
 ---
 
-## 🎯 Applications
+## Applications
 
 - Inventory Management
 - Product Identification
@@ -195,6 +196,6 @@ The repository already has the five team feature branches. Repository access for
 
 ---
 
-## 📄 License
+## License
 
 This project is released under the terms of the [LICENSE](LICENSE) file.
