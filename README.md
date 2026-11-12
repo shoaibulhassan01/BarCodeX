@@ -57,6 +57,12 @@ The equivalent CMake preset can be used after setting `CMAKE_PREFIX_PATH`,
 `CMAKE_CXX_COMPILER`, and `CMAKE_MAKE_PROGRAM` to paths for your own Qt and
 MinGW installation.
 
+### Create a Windows installer
+
+Run `run.bat --package` from the project folder. This builds the application and
+stages its Qt and MinGW runtime files in `dist\BarCodeX`. Open `BarCodeX.iss` in
+Inno Setup and select **Compile** to create `dist\BarCodeX-Setup.exe`.
+
 ---
 
 ## Features

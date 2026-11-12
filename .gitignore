@@ -5,6 +5,8 @@ barcodex.exe
 # Build directories
 build/
 build-*/
+/dist/
+/BarCodeX.iss
 Debug/
 Release/
 debug/

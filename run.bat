@@ -85,6 +85,8 @@ if not exist "%APP_EXE%" (
     exit /b 1
 )
 
+if /I "%~1"=="--package" goto package
+
 if exist "%QT_PREFIX_PATH%\bin\windeployqt.exe" (
     "%QT_PREFIX_PATH%\bin\windeployqt.exe" --no-translations --compiler-runtime --add-plugin-types multimedia "%APP_EXE%"
     if errorlevel 1 (
@@ -103,3 +105,42 @@ if errorlevel 1 (
     pause
     exit /b 1
 )
+goto :eof
+
+:package
+set "PACKAGE_DIR=%~dp0dist\BarCodeX"
+if not exist "%QT_PREFIX_PATH%\bin\windeployqt.exe" (
+    echo windeployqt was not found. Cannot create a standalone package.
+    pause
+    exit /b 1
+)
+
+if exist "%PACKAGE_DIR%" rmdir /s /q "%PACKAGE_DIR%"
+if exist "%PACKAGE_DIR%" (
+    echo Could not clear the previous package directory.
+    pause
+    exit /b 1
+)
+mkdir "%PACKAGE_DIR%"
+if errorlevel 1 (
+    echo Could not create the package directory.
+    pause
+    exit /b 1
+)
+
+copy /y "%APP_EXE%" "%PACKAGE_DIR%\BarCodeX.exe" >nul
+if errorlevel 1 (
+    echo Could not copy the application executable.
+    pause
+    exit /b 1
+)
+
+"%QT_PREFIX_PATH%\bin\windeployqt.exe" --dir "%PACKAGE_DIR%" --no-translations --compiler-runtime --add-plugin-types multimedia "%APP_EXE%"
+if errorlevel 1 (
+    echo Qt runtime deployment failed.
+    pause
+    exit /b 1
+)
+
+echo Installer files are ready in "%PACKAGE_DIR%".
+exit /b 0
