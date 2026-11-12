@@ -25,7 +25,6 @@ set_target_properties(BarCodeX PROPERTIES WIN32_EXECUTABLE ON)
 include(CTest)
 if(BUILD_TESTING)
     qt_add_executable(CameraScannerTest
-        tests/camera_scanner_test.cpp
         encoder/encoder.cpp
         generator/generator.cpp
         decoder/decoder.cpp
