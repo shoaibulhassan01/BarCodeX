@@ -2,7 +2,7 @@
 
 ---
 
-## 📋 Project Details
+## Project Details
 
 | Field | Details |
 |---|---|
@@ -22,7 +22,7 @@ The barcode encoder and decoder algorithms will be implemented from scratch. Cam
 
 ---
 
-## 👥 Team Members
+## Team Members
 
 | # | Name | Main Responsibility |
 |---|---|---|
@@ -34,7 +34,7 @@ The barcode encoder and decoder algorithms will be implemented from scratch. Cam
 
 ---
 
-## 🚀 Quick Start (Windows)
+## Quick Start (Windows)
 
 ### Prerequisites
 
@@ -59,7 +59,7 @@ MinGW installation.
 
 ---
 
-## ✨ Features
+## Features
 
 ### Generator
 
@@ -84,7 +84,7 @@ MinGW installation.
 
 ---
 
-## 🛠️ Technologies Used
+## Technologies Used
 
 | Field | Details |
 |---|---|
@@ -97,7 +97,7 @@ MinGW installation.
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```text
 BarCodeX/
@@ -139,7 +139,7 @@ The current application is a console program that prints "Hello World" and calls
 
 ---
 
-## 🔀 Team Branch and Commit Workflow
+## Team Branch and Commit Workflow
 
 `main` is the default branch. Each team member should work on their assigned `feature/<name>` branch, starting from the latest `main` branch.
 
@@ -183,7 +183,7 @@ The repository already has the five team feature branches. Repository access for
 
 ---
 
-## 🎯 Applications
+## Applications
 
 - Inventory Management
 - Product Identification
@@ -192,6 +192,6 @@ The repository already has the five team feature branches. Repository access for
 
 ---
 
-## 📄 License
+## License
 
 This project is released under the terms of the [LICENSE](LICENSE) file.
