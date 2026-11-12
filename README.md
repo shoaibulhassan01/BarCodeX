@@ -42,7 +42,7 @@ The barcode encoder and decoder algorithms will be implemented from scratch. Cam
 - CMake and Ninja (or the copies installed with Qt)
 - Qt 6 with the **MinGW 64-bit** kit and the matching MinGW compiler
 
-Install Qt with its Qt Widgets component. The default Qt installer location
+Install Qt with its Qt Widgets and Qt Multimedia components. The default Qt installer location
 (`C:\Qt`) is detected automatically. For a custom location, set `QT_ROOT` to
 the Qt installation folder or `QT_PREFIX_PATH` to the kit's `mingw_64` folder.
 If more than one MinGW compiler is installed, set `MINGW_ROOT` to the matching
@@ -90,7 +90,8 @@ MinGW installation.
 |---|---|
 | **Programming Language** | C++ |
 | **Compiler** | GCC/G++ |
-| **UI Framework** | Qt 6 Widgets |
+| **UI Framework** | Qt 6 Widgets and Qt Multimedia |
+| **Camera Capture** | `QCamera`, `QMediaCaptureSession`, and `QVideoSink` |
 | **Barcode Standard** | Code 39 |
 | **Core Concepts** | Pattern Matching, Character Encoding, Image Processing |
 | **Version Control** | Git & GitHub |
@@ -113,10 +114,13 @@ BarCodeX/
 ├── scanner/
 │   ├── scanner.h           # Image to black/white run widths (Umar)
 │   └── scanner.cpp
+├── camera/
+│   ├── camera_scanner.h    # Live camera capture and frame decoding
+│   └── camera_scanner.cpp
 ├── decoder/
 │   ├── decoder.h           # Run widths to digits (Anas)
 │   └── decoder.cpp
-├── tests/                  # Generated test barcode images
+├── tests/                  # Camera decoding regression test and barcode images
 ├── README.md
 ├── .gitignore
 └── LICENSE
@@ -135,7 +139,7 @@ BarCodeX/
 
 Each member works only inside their own folder. The `.h` files (function names, inputs and outputs) are changed only by the Team Leader.
 
-The current application is a console program that prints "Hello World" and calls each module's placeholder functions. Barcode generation and scanning functionality is still under development.
+The application is a Qt Widgets desktop program. Image scanning and live camera scanning use separate processing paths; the camera path captures frames with Qt Multimedia and applies adaptive thresholding before Code 39 decoding.
 
 ---
 

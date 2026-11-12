@@ -5,8 +5,10 @@
 // No Q_OBJECT is used, so no moc step is needed.
 
 #include "ui.h"
+#include "../camera/camera_scanner.h"
 
 #include <functional>
+#include <memory>
 
 #include <QApplication>
 #include <QMainWindow>
@@ -17,6 +19,7 @@
 #include <QPushButton>
 #include <QButtonGroup>
 #include <QStackedWidget>
+#include <QMediaDevices>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QFileDialog>
@@ -222,6 +225,30 @@ public:
         setMinimumSize(940, 640);
         buildUi();
         applyStyle();
+        cameraScanner = std::make_unique<CameraBarcodeScanner>();
+        cameraScanner->setHandlers(
+            [this](const QImage& image) {
+                if (cameraPreview) {
+                    cameraPreview->setImage(image);
+                    if (cameraStatus &&
+                        cameraStatus->text() == "Waiting for video frames...")
+                        cameraStatus->setText("Live preview active. Hold a barcode in view.");
+                }
+            },
+            [this](const QString& digits) {
+                setScanState(ScanState::Ok, digits);
+                stopCamera();
+                cameraStatus->setText("Barcode found.");
+                setStatus("Camera read " + digits + ".", false);
+            },
+            [this](const QString& error) {
+                stopCamera();
+                cameraStatus->setText("Camera error: " + error);
+                setStatus("Camera error: " + error, true);
+            });
+        auto* mediaDevices = new QMediaDevices(this);
+        connect(mediaDevices, &QMediaDevices::videoInputsChanged,
+            this, [this] { refreshCameraDevices(); });
         setScanState(ScanState::Idle);
         setGenStatus(GenState::Ready);
         setStatus("Ready.", false);
@@ -267,13 +294,20 @@ private:
     enum class GenState { Ready, Done, Error };
 
     UiBackend backend;   // functions supplied by main.cpp
+    std::unique_ptr<CameraBarcodeScanner> cameraScanner;
 
     // tabs / pages
     QStackedWidget* stack = nullptr;
     QPushButton* tabScan = nullptr, * tabGen = nullptr;
 
     // scan page
+    QStackedWidget* scanSourceStack = nullptr;
+    QPushButton* imageModeBtn = nullptr, * cameraModeBtn = nullptr;
     PreviewFrame* scanPreview = nullptr;
+    PreviewFrame* cameraPreview = nullptr;
+    QLabel* cameraStatus = nullptr;
+    QPushButton* cameraStartBtn = nullptr, * cameraStopBtn = nullptr;
+    QList<QCameraDevice> cameraDevices;
     QFrame* valueBox = nullptr;
     QLabel* valueTitle = nullptr, * valueDigits = nullptr, * scanStatusValue = nullptr;
     QPushButton* copyBtn = nullptr;
@@ -412,7 +446,7 @@ private:
         title->setFont(QFont("Segoe UI", 23, QFont::DemiBold));
         titleBlock->addWidget(title);
 
-        auto* sub = new QLabel("Barcode generation and image scanning");
+        auto* sub = new QLabel("Barcode generation, image and live camera scanning");
         sub->setObjectName("muted");
         titleBlock->addWidget(sub);
         row->addLayout(titleBlock);
@@ -446,6 +480,7 @@ private:
 
         connect(tabScan, &QPushButton::clicked, this, [this] { stack->setCurrentIndex(0); });
         connect(tabGen, &QPushButton::clicked, this, [this] {
+            stopCamera();
             stack->setCurrentIndex(1);
             boxes[0]->setFocus();
             });
@@ -538,6 +573,51 @@ private:
         dz->addStretch();
 
         lay->addWidget(zone, 1);
+        return card;
+    }
+
+    QFrame* buildCameraCard()
+    {
+        QFrame* card = makeCard();
+        auto* lay = new QVBoxLayout(card);
+        lay->setContentsMargins(24, 22, 24, 24);
+        lay->setSpacing(14);
+        addCardTitle(lay, "Live camera scan",
+            "Hold the barcode steady in view; scanning continues until it is recognized.");
+
+        auto* controls = new QHBoxLayout;
+        controls->setSpacing(10);
+        cameraDevices = CameraBarcodeScanner::availableCameras();
+
+        cameraStartBtn = new QPushButton("Start camera");
+        cameraStartBtn->setObjectName("cameraStartBtn");
+        cameraStartBtn->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
+        cameraStartBtn->setCursor(Qt::PointingHandCursor);
+        cameraStartBtn->setFixedSize(152, 42);
+        cameraStartBtn->setEnabled(!cameraDevices.isEmpty());
+        connect(cameraStartBtn, &QPushButton::clicked, this, [this] { startCamera(); });
+        controls->addWidget(cameraStartBtn);
+
+        cameraStopBtn = new QPushButton("Stop scanning");
+        cameraStopBtn->setObjectName("cameraStopBtn");
+        cameraStopBtn->setIcon(style()->standardIcon(QStyle::SP_MediaStop));
+        cameraStopBtn->setCursor(Qt::PointingHandCursor);
+        cameraStopBtn->setFixedSize(142, 42);
+        cameraStopBtn->setEnabled(false);
+        connect(cameraStopBtn, &QPushButton::clicked, this, [this] {
+            stopCamera();
+            cameraStatus->setText("Camera stopped.");
+        });
+        controls->addWidget(cameraStopBtn);
+        lay->addLayout(controls);
+
+        cameraPreview = new PreviewFrame("Camera preview will appear here.");
+        lay->addWidget(cameraPreview, 1);
+        cameraStatus = new QLabel(cameraDevices.isEmpty()
+            ? "No camera was detected."
+            : "Ready to start.");
+        cameraStatus->setObjectName("muted");
+        lay->addWidget(cameraStatus);
         return card;
     }
 
@@ -934,6 +1014,13 @@ private:
             QPushButton#tab:checked { color:@accent; font-weight:700; border-bottom:2px solid @accent; }
             QPushButton#tab:focus { outline:none; }
 
+            QPushButton#scanModeBtn { background:white; color:@text; border:1px solid #D5DCE8;
+                                      border-radius:8px; padding:0 12px; font-weight:600; }
+            QPushButton#scanModeBtn:hover { background:#F8FAFF; border-color:#AAB6CC; }
+            QPushButton#scanModeBtn:checked { background:@accent; color:white; border-color:@accent; }
+            QPushButton#scanModeBtn:checked:hover { background:@accentHover; border-color:@accentHover; }
+            QPushButton#scanModeBtn:focus { border:2px solid #A5B4FC; }
+
             QPushButton#primaryBtn { background:@accent; color:white; border:none; border-radius:8px;
                                      font-size:14px; font-weight:650; }
             QPushButton#primaryBtn:hover    { background:@accentHover; }
@@ -945,6 +1032,20 @@ private:
             QPushButton#secondaryBtn:hover    { background:#F8FAFF; border-color:#AAB6CC; }
             QPushButton#secondaryBtn:disabled { color:#98A2B3; background:#F8FAFC; border:1px solid #E8ECF2; }
             QPushButton#secondaryBtn:focus { border:2px solid #A5B4FC; }
+
+            QPushButton#cameraStartBtn { background:@accent; color:white; border:1px solid @accent;
+                                         border-radius:9px; padding:0 16px; font-size:14px; font-weight:650; }
+            QPushButton#cameraStartBtn:hover { background:@accentHover; border-color:@accentHover; }
+            QPushButton#cameraStartBtn:pressed { background:#3730A3; border-color:#3730A3; }
+            QPushButton#cameraStartBtn:disabled { background:#D8D0F5; color:#F8F7FF; border-color:#D8D0F5; }
+            QPushButton#cameraStartBtn:focus { border:2px solid #A5B4FC; }
+
+            QPushButton#cameraStopBtn { background:white; color:@bad; border:1px solid @badBorder;
+                                         border-radius:9px; padding:0 14px; font-size:14px; font-weight:650; }
+            QPushButton#cameraStopBtn:hover { background:@badBg; border-color:#E4A5A0; }
+            QPushButton#cameraStopBtn:pressed { background:#FEE4E2; }
+            QPushButton#cameraStopBtn:disabled { background:#F8FAFC; color:#98A2B3; border-color:#E8ECF2; }
+            QPushButton#cameraStopBtn:focus { border:2px solid #F2C2BE; }
 
             QLineEdit#digitBox { background:white; border:1px solid #D5DCE8; border-radius:8px; color:@text;
                                  font-family:Consolas,'Courier New',monospace; font-size:27px; font-weight:600;
@@ -959,7 +1060,9 @@ private:
         )";
         css.replace("@accentLight", kAccentLight).replace("@accentHover", kAccentHover)
             .replace("@accent", kAccent).replace("@bg", kBackground).replace("@border", kBorder)
-            .replace("@text", kText).replace("@muted", kMuted).replace("@bad", kBad)
+            .replace("@text", kText).replace("@muted", kMuted)
+            .replace("@badBg", kBadBg).replace("@badBorder", kBadBorder)
+            .replace("@bad", kBad)
             .replace("@soft", kSoft);
         setStyleSheet(css);
     }
