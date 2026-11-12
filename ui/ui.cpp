@@ -252,12 +252,14 @@ public:
         setScanState(ScanState::Idle);
         setGenStatus(GenState::Ready);
         setStatus("Ready.", false);
+        QApplication::instance()->installEventFilter(this);
     }
 
 protected:
     bool eventFilter(QObject* obj, QEvent* e) override
     {
-        if (stack->currentIndex() == 0 && QApplication::activeWindow() == this &&
+        if (stack->currentIndex() == 0 && scanSourceStack->currentIndex() == 0 &&
+            QApplication::activeWindow() == this &&
             e->type() == QEvent::KeyPress) {
             auto* ke = static_cast<QKeyEvent*>(e);
             if (ke->matches(QKeySequence::Paste)) {
@@ -352,6 +354,16 @@ private:
         shadow->setColor(QColor(24, 34, 53, 14));
         c->setGraphicsEffect(shadow);
         return c;
+    }
+
+    static QPushButton* makeRefreshButton(QWidget* parent, const QString& toolTip)
+    {
+        auto* button = new QPushButton("Refresh", parent);
+        button->setObjectName("secondaryBtn");
+        button->setCursor(Qt::PointingHandCursor);
+        button->setFixedSize(104, 34);
+        button->setToolTip(toolTip);
+        return button;
     }
 
     static void addCardTitle(QVBoxLayout* lay, const QString& title, const QString& hint = QString())
@@ -507,15 +519,45 @@ private:
         layout->setSpacing(8);
 
         auto* toolbar = new QHBoxLayout;
+        imageModeBtn = new QPushButton("Scan image");
+        cameraModeBtn = new QPushButton("Scan with camera");
+        auto* scanModeGroup = new QButtonGroup(this);
+        scanModeGroup->setExclusive(true);
+        scanModeGroup->addButton(imageModeBtn);
+        scanModeGroup->addButton(cameraModeBtn);
+        imageModeBtn->setCheckable(true);
+        cameraModeBtn->setCheckable(true);
+        imageModeBtn->setChecked(true);
+        for (QPushButton* button : { imageModeBtn, cameraModeBtn }) {
+            button->setObjectName("scanModeBtn");
+            button->setCursor(Qt::PointingHandCursor);
+            button->setFixedHeight(38);
+        }
+        imageModeBtn->setFixedWidth(128);
+        cameraModeBtn->setFixedWidth(178);
+        connect(imageModeBtn, &QPushButton::clicked, this, [this] {
+            stopCamera();
+            scanSourceStack->setCurrentIndex(0);
+        });
+        connect(cameraModeBtn, &QPushButton::clicked, this, [this] {
+            scanSourceStack->setCurrentIndex(1);
+            startCamera();
+        });
+        toolbar->addWidget(imageModeBtn);
+        toolbar->addWidget(cameraModeBtn);
         toolbar->addStretch();
-        auto* refresh = makeRefreshButton(page, "Clear the scanned image and result");
+        auto* refresh = makeRefreshButton(page,
+            "Clear the current scan and stay in this scan mode");
         connect(refresh, &QPushButton::clicked, this, [this] { resetScanPage(); });
         toolbar->addWidget(refresh);
         layout->addLayout(toolbar);
 
         auto* cards = new QHBoxLayout;
         cards->setSpacing(20);
-        cards->addWidget(buildUploadCard(), 1);
+        scanSourceStack = new QStackedWidget;
+        scanSourceStack->addWidget(buildUploadCard());
+        scanSourceStack->addWidget(buildCameraCard());
+        cards->addWidget(scanSourceStack, 1);
         cards->addWidget(buildResultCard(), 1);
         layout->addLayout(cards, 1);
         return page;
@@ -801,9 +843,67 @@ private:
 
     void resetScanPage()
     {
+        stopCamera();
         scanPreview->clear();
+        cameraPreview->clear();
+        cameraStatus->setText(cameraDevices.isEmpty()
+            ? "No camera was detected."
+            : "Ready to start.");
         setScanState(ScanState::Idle);
         setStatus("Ready.", false);
+    }
+
+    void startCamera()
+    {
+        if (!cameraScanner || cameraScanner->isRunning())
+            return;
+        if (cameraDevices.isEmpty()) {
+            cameraStatus->setText("No camera was detected.");
+            setStatus("Connect a camera and try again.", true);
+            return;
+        }
+
+        QString error;
+        const QCameraDevice defaultCamera = QMediaDevices::defaultVideoInput();
+        const QCameraDevice camera = defaultCamera.isNull()
+            ? cameraDevices.constFirst()
+            : defaultCamera;
+        cameraStartBtn->setEnabled(false);
+        cameraStopBtn->setEnabled(true);
+        cameraStatus->setText("Waiting for video frames...");
+        setStatus("Show a Code 39 barcode to the camera.", false);
+        if (!cameraScanner->start(camera, error)) {
+            stopCamera();
+            cameraStatus->setText(error);
+            setStatus(error, true);
+        }
+    }
+
+    void refreshCameraDevices()
+    {
+        cameraDevices = CameraBarcodeScanner::availableCameras();
+        if (cameraStartBtn)
+            cameraStartBtn->setEnabled(!cameraDevices.isEmpty() &&
+                (!cameraScanner || !cameraScanner->isRunning()));
+        if (cameraDevices.isEmpty() && cameraStatus) {
+            cameraStatus->setText("No camera was detected.");
+            setStatus("No camera is connected.", true);
+        }
+        else if (cameraStatus &&
+            cameraStatus->text() == "No camera was detected.") {
+            cameraStatus->setText("Camera detected. Ready to start.");
+            setStatus("Camera detected.", false);
+        }
+    }
+
+    void stopCamera()
+    {
+        if (cameraScanner)
+            cameraScanner->stop();
+        if (cameraStartBtn)
+            cameraStartBtn->setEnabled(!cameraDevices.isEmpty());
+        if (cameraStopBtn)
+            cameraStopBtn->setEnabled(false);
     }
 
     void resetGeneratePage()
@@ -820,6 +920,16 @@ private:
     }
 
     // ---------------- Actions ----------------
+    void pasteClipboardImage()
+    {
+        const QImage image = QApplication::clipboard()->image();
+        if (image.isNull()) {
+            setStatus("The clipboard doesn't contain an image.", true);
+            return;
+        }
+        processImage(image, "Clipboard image");
+    }
+
     void pasteDigits()
     {
         const QString t = QApplication::clipboard()->text().trimmed();
@@ -910,9 +1020,11 @@ private:
 
     void processImage(const QImage& img, const QString& source)
     {
+        stopCamera();
+        scanSourceStack->setCurrentIndex(0);
         scanPreview->setImage(img);
 
-        const QString info = QString("%1 (%2 x %3 px)").arg(QFileInfo(path).fileName())
+        const QString info = QString("%1 (%2 x %3 px)").arg(source)
             .arg(img.width()).arg(img.height());
 
         QString digits, err;
