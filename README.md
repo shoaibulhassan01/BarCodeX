@@ -28,11 +28,11 @@ A barcode based Point of Sale (POS) system built with C++ and Qt. Products are i
 
 | Name | Responsibility |
 |---|---|
-| Shoaib Ul Hassan (Team Leader) | Shared interfaces, models, encoder, ID generation, integration |
-| Umar Khan | Camera input, image preprocessing, scan-line extraction |
-| Zain Ul Abideen | Barcode generation, file repositories |
-| Anas | Barcode decoding, services and payment modes |
-| Abdul Ahad | User interface and navigation |
+| Shoaib Ul Hassan (Team Leader) | Login/authentication, ID rules and final integration |
+| Umar Khan | Product records, file format helpers, barcode lookup and stock checks |
+| Zain Ul Abideen | POS adapter for the existing camera barcode scanner |
+| Anas | Order, order-detail, bill, payment and hold/resume logic |
+| Abdul Ahad | All POS screens and navigation |
 
 ## Getting Started (Windows)
 
@@ -56,21 +56,17 @@ DukaanOS/
 │   ├── generator/   # Patterns to barcode image
 │   ├── scanner/     # Image to run widths
 │   ├── camera/      # Live camera capture
-│   ├── decoder/     # Run widths to digits
-│   └── tests/
-├── POS/
-│   ├── product/     # Product data, Product.txt access, product service
-│   ├── order/       # Order data, Order.txt and OrderDetail.txt access, order service, payment modes
-│   ├── bill/        # Bill data, Bill.txt access, billing and checkout
-│   └── user/        # User data, Users.txt access, login and session
-├── ui/
-│   ├── pages/       # Login, Dashboard, Scan, Order, Bill, History, Products
-│   ├── widgets/     # Reusable widgets (camera view, totals panel, tables)
-│   └── theme/       # Colors and fonts
-└── Data/            # Product.txt, Order.txt, OrderDetail.txt, Bill.txt, Users.txt
+│   └── decoder/     # Run widths to digits
+├── models/          # Product, Order, OrderDetail, Bill, User
+├── repositories/    # Text file read/write
+├── services/        # Product, order, billing, auth, payment
+├── ui/              # Pages and widgets
+├── data/            # Product.txt, Order.txt, OrderDetail.txt, Bill.txt, Users.txt
+├── barcodes/        # Product barcode images
+└── tests/
 ```
 
-Dependency runs one way: `ui` uses `POS`, and `POS` uses `BarCode`. Inside each `POS` folder, data classes, file access and business rules are kept in separate files. Each member works only inside their own folder, and shared `.h` files are changed only by the Team Leader.
+Pages only handle display and input, services hold the business rules, and repositories only read and write files. Each member works only inside their own folder, and shared `.h` files are changed only by the Team Leader.
 
 ## Data Files
 
