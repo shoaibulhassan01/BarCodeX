@@ -1,207 +1,98 @@
-# BarCodeX
+# DukaanOS
 
----
-
-## Project Details
-
-| Field | Details |
-|---|---|
-| **Project** | BarCodeX: Barcode Generator & Scanner |
-| **Language** | C++ |
-| **Barcode Standard** | Code 39 |
-| **Goal** | Desktop application for generating and scanning six-digit numeric barcodes |
-| **Domain** | Pattern Matching, Character Encoding, Image Processing |
-
-BarCodeX is a C++ desktop application designed to generate and scan Code 39 barcodes containing numeric digits (0–9).
-
-The application accepts exactly six numeric digits, generates and saves a barcode image, and supports scanning existing barcode images as well as live barcode scanning through a laptop camera.
-
-The barcode encoder and decoder algorithms will be implemented from scratch. Camera and general image-processing libraries require instructor approval.
-
-**Supported input:** Numeric digits (0–9).
-
----
-
-## Team Members
-
-| # | Name | Main Responsibility |
-|---|---|---|
-| 1 | Shoaib Ul Hassan (Team Leader) | Project setup and shared interfaces; Code 39 lookup table and encoder; coordination, review, merging, and final integration. |
-| 2 | Umar Khan | Camera input and image preprocessing; barcode scan-line extraction and black/white run-width measurement. |
-| 3 | Zain Ul Abideen | Barcode generation; rendering Code 39 patterns as images with element widths and quiet zones, and exporting them. |
-| 4 | Anas | Barcode decoding; classifying run widths, matching Code 39 patterns, and recovering the decoded numeric value. |
-| 5 | Abdul Ahad | User interface; generation and scanning screens, navigation, input/output display, and connecting the UI to backend modules. |
-
----
-
-## Quick Start (Windows)
-
-### Prerequisites
-
-- Git
-- CMake and Ninja (or the copies installed with Qt)
-- Qt 6 with the **MinGW 64-bit** kit and the matching MinGW compiler
-
-Install Qt with its Qt Widgets and Qt Multimedia components. The default Qt installer location
-(`C:\Qt`) is detected automatically. For a custom location, set `QT_ROOT` to
-the Qt installation folder or `QT_PREFIX_PATH` to the kit's `mingw_64` folder.
-If more than one MinGW compiler is installed, set `MINGW_ROOT` to the matching
-compiler folder (the one containing `bin\g++.exe`).
-
-Clone the repository and double-click `run.bat`, or run it from Command Prompt.
-The script configures and builds the app, deploys the Qt runtime beside the
-executable, and starts the window. The first run requires the Qt development
-kit and build tools; they are not included in the repository.
-
-The equivalent CMake preset can be used after setting `CMAKE_PREFIX_PATH`,
-`CMAKE_CXX_COMPILER`, and `CMAKE_MAKE_PROGRAM` to paths for your own Qt and
-MinGW installation.
-
-### Create a Windows installer
-
-Run `run.bat --package` from the project folder. This builds the application and
-stages its Qt and MinGW runtime files in `dist\BarCodeX`. Open `BarCodeX.iss` in
-Inno Setup and select **Compile** to create `dist\BarCodeX-Setup.exe`.
-
----
+A barcode based Point of Sale (POS) system built with C++ and Qt. Products are identified by camera scanning Code 39 barcodes, using an encoder and decoder written from scratch.
 
 ## Features
 
-### Generator
+- Login with Cashier and Manager roles
+- Camera based barcode scanning to view product details
+- Order recording with stock check, hold and payment (cash, card, wallet)
+- Bill generation with order, tax and discount totals
+- Text file storage for products, orders, order details and bills
+- Code 39 barcode generator and scanner (six-digit numeric barcodes)
 
-- **Code 39 Encoding:** Converts numeric digits (0–9) into Code 39 barcode patterns.
-- **Six-Digit Validation:** Accepts exactly six numeric digits.
-- **Start/Stop Handling:** Adds the required `*` start/stop symbols.
-- **Input Validation:** Rejects empty input and unsupported characters.
-- **Barcode Image Generation:** Renders the encoded pattern as a barcode image.
-- **Image Export:** Saves the generated barcode image.
-- **Refresh:** Clears the entered number and generated barcode.
+## Pages
 
-### Scanner
+| Page | Access | Purpose |
+|---|---|---|
+| Login | Everyone | Sign in with username and password |
+| Dashboard | Cashier, Manager | Role based actions and today's summary |
+| Scan Product | Cashier, Manager | Scan a barcode and view product details |
+| New Order | Cashier | Scan items, set payment, hold the order or generate the bill |
+| Bill | Cashier | View the generated bill |
+| Held Orders | Cashier | Resume on-hold orders |
+| Orders History | Cashier, Manager | Search and view orders; Manager can archive |
+| Products | Manager | View, add and edit products |
 
-- **Live Camera Scanning:** Captures barcode images using a laptop camera.
-- **Image Scanning:** Open an image file or paste a screenshot from the clipboard
-  with **Ctrl+V** on the Scan tab to preview and decode it.
-- **Refresh:** Clears the current image and scan result.
-- **Image Preprocessing:** Processes captured or uploaded images for barcode recognition.
-- **Run-Width Extraction:** Measures black and white element widths.
-- **Pattern Recognition:** Classifies narrow and wide elements and matches Code 39 patterns.
-- **Numeric Decoding:** Retrieves the original six-digit numeric value.
+## Team
 
----
-
-## Technologies Used
-
-| Field | Details |
+| Name | Responsibility |
 |---|---|
-| **Programming Language** | C++ |
-| **Compiler** | GCC/G++ |
-| **UI Framework** | Qt 6 Widgets and Qt Multimedia |
-| **Camera Capture** | `QCamera`, `QMediaCaptureSession`, and `QVideoSink` |
-| **Barcode Standard** | Code 39 |
-| **Core Concepts** | Pattern Matching, Character Encoding, Image Processing |
-| **Version Control** | Git & GitHub |
+| Shoaib Ul Hassan (Team Leader) | Shared interfaces, models, encoder, ID generation, integration |
+| Umar Khan | Camera input, image preprocessing, scan-line extraction |
+| Zain Ul Abideen | Barcode generation, file repositories |
+| Anas | Barcode decoding, services and payment modes |
+| Abdul Ahad | User interface and navigation |
 
----
+## Getting Started (Windows)
+
+**Requirements:** Git, CMake, Ninja, and Qt 6 (Widgets and Multimedia) with the MinGW 64-bit kit.
+
+1. Clone the repository.
+2. Run `run.bat`. It configures, builds, deploys the Qt runtime and starts the app.
+
+If Qt is not in `C:\Qt`, set `QT_ROOT` (Qt folder) or `QT_PREFIX_PATH` (the kit's `mingw_64` folder). If several MinGW compilers are installed, set `MINGW_ROOT` to the matching one.
+
+To build an installer, run `run.bat --package`, then compile `DukaanOS.iss` in Inno Setup to create `dist\DukaanOS-Setup.exe`.
 
 ## Project Structure
 
-```text
-BarCodeX/
-├── main.cpp                # UI and main program (Ahad)
-├── common/
-│   └── common.h            # Shared Image class (Leader)
-├── encoder/
-│   ├── encoder.h           # Digits to Code 39 patterns (Leader)
-│   └── encoder.cpp
-├── generator/
-│   ├── generator.h         # Patterns to barcode image (Zain)
-│   └── generator.cpp
-├── scanner/
-│   ├── scanner.h           # Image to black/white run widths (Umar)
-│   └── scanner.cpp
-├── camera/
-│   ├── camera_scanner.h    # Live camera capture and frame decoding
-│   └── camera_scanner.cpp
-├── decoder/
-│   ├── decoder.h           # Run widths to digits (Anas)
-│   └── decoder.cpp
-├── tests/                  # Camera decoding regression test and barcode images
-├── README.md
-├── .gitignore
-└── LICENSE
+```
+DukaanOS/
+├── main.cpp
+├── common/          # Shared Image class
+├── encoder/         # Digits to Code 39 patterns
+├── generator/       # Patterns to barcode image
+├── scanner/         # Image to run widths
+├── camera/          # Live camera capture
+├── decoder/         # Run widths to digits
+├── models/          # Product, Order, OrderDetail, Bill, User
+├── repositories/    # Text file read/write
+├── services/        # Product, order, billing, auth, payment
+├── ui/              # Pages and widgets
+├── data/            # Product.txt, Order.txt, OrderDetail.txt, Bill.txt, Users.txt
+├── barcodes/        # Product barcode images
+└── tests/
 ```
 
-**Data flow**
+Pages only handle display and input, services hold the business rules, and repositories only read and write files. Each member works only inside their own folder, and shared `.h` files are changed only by the Team Leader.
 
-- Generate: digits → `encoder` → patterns → `generator` → barcode image
-- Scan: image → `scanner` → run widths → `decoder` → digits
+## Data Files
 
-**Shared formats**
+One record per line, fields separated by a space, each line ending with `#`. Names use `_` instead of spaces, and an empty optional field is written as `-`.
 
-- Pattern: 9 letters, `n` = narrow, `w` = wide (example: `nwnnwnwnn`)
-- Run widths: first value is always a bar (black); narrow = 2 px, wide = 6 px
-- Pixels: black = 0, white = 255
+| File | Fields |
+|---|---|
+| Product.txt | id, barcode, acronym (max 8), name, unit, unit price, tax (PKR), discount per unit, available quantity, barcode image path |
+| Order.txt | order id (8 digits), date, time, customer name, contact, status, payment amount, payment mode, merchant |
+| OrderDetail.txt | order id, product id, barcode, quantity |
+| Bill.txt | bill id (9 digits), customer name, order id, acronym, unit price, discount per unit, quantity, total without tax, total tax, total discount, total payable, status |
+| Users.txt | username, password, role |
 
-Each member works only inside their own folder. The `.h` files (function names, inputs and outputs) are changed only by the Team Leader.
+Order status: `in-progress`, `on-hold`, `paid`, `archived`. Payment mode: `cash`, `card`, `wallet`.
 
-The application is a Qt Widgets desktop program. Image scanning and live camera scanning use separate processing paths; the camera path captures frames with Qt Multimedia and applies adaptive thresholding before Code 39 decoding.
+## Workflow
 
----
+Work on your own `feature/<name>` branch, merge the latest `main` into it, push, and open a pull request. Do not commit directly to `main`.
 
-## Team Branch and Commit Workflow
-
-`main` is the default branch. Each team member should work on their assigned `feature/<name>` branch, starting from the latest `main` branch.
-
-### 1. Get the Latest Main Branch
-
-```bash
-git switch main
-git pull origin main
 ```
-
-### 2. Switch to Your Feature Branch
-
-```bash
+git switch main && git pull origin main
 git switch feature/<name>
-```
-
-### 3. Merge Latest Main into Your Branch
-
-```bash
 git merge main
-```
-
-### 4. Commit Your Changes
-
-```bash
-git add <changed-files>
-git commit -m "Add Code 39 encoder"
-```
-
-### 5. Push Your Feature Branch
-
-```bash
+git add <files> && git commit -m "message"
 git push -u origin feature/<name>
 ```
 
-After pushing, open a pull request into `main`.
-
-Review and resolve conflicts before merging. Do not commit directly to `main`.
-
-The repository already has the five team feature branches. Repository access for team members is managed in GitHub Settings → Collaborators; only a repository owner/admin can invite accounts.
-
----
-
-## Applications
-
-- Inventory Management
-- Product Identification
-- Library Management Systems
-- Asset Tracking
-
----
-
 ## License
 
-This project is released under the terms of the [LICENSE](LICENSE) file.
+Released under the terms of the `LICENSE` file.
