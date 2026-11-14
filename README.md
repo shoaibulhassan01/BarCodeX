@@ -56,17 +56,21 @@ DukaanOS/
 │   ├── generator/   # Patterns to barcode image
 │   ├── scanner/     # Image to run widths
 │   ├── camera/      # Live camera capture
-│   └── decoder/     # Run widths to digits
-├── models/          # Product, Order, OrderDetail, Bill, User
-├── repositories/    # Text file read/write
-├── services/        # Product, order, billing, auth, payment
-├── ui/              # Pages and widgets
-├── data/            # Product.txt, Order.txt, OrderDetail.txt, Bill.txt, Users.txt
-├── barcodes/        # Product barcode images
-└── tests/
+│   ├── decoder/     # Run widths to digits
+│   └── tests/
+├── POS/
+│   ├── product/     # Product data, Product.txt access, product service
+│   ├── order/       # Order data, Order.txt and OrderDetail.txt access, order service, payment modes
+│   ├── bill/        # Bill data, Bill.txt access, billing and checkout
+│   └── user/        # User data, Users.txt access, login and session
+├── ui/
+│   ├── pages/       # Login, Dashboard, Scan, Order, Bill, History, Products
+│   ├── widgets/     # Reusable widgets (camera view, totals panel, tables)
+│   └── theme/       # Colors and fonts
+└── Data/            # Product.txt, Order.txt, OrderDetail.txt, Bill.txt, Users.txt
 ```
 
-Pages only handle display and input, services hold the business rules, and repositories only read and write files. Each member works only inside their own folder, and shared `.h` files are changed only by the Team Leader.
+Dependency runs one way: `ui` uses `POS`, and `POS` uses `BarCode`. Inside each `POS` folder, data classes, file access and business rules are kept in separate files. Each member works only inside their own folder, and shared `.h` files are changed only by the Team Leader.
 
 ## Data Files
 
