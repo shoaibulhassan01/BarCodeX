@@ -5,7 +5,7 @@
 // No Q_OBJECT is used, so no moc step is needed.
 
 #include "ui.h"
-#include "../camera/camera_scanner.h"
+#include "../BarCode/camera/camera_scanner.h"
 
 #include <functional>
 #include <memory>

@@ -50,12 +50,13 @@ To build an installer, run `run.bat --package`, then compile `DukaanOS.iss` in I
 ```
 DukaanOS/
 ├── main.cpp
-├── common/          # Shared Image class
-├── encoder/         # Digits to Code 39 patterns
-├── generator/       # Patterns to barcode image
-├── scanner/         # Image to run widths
-├── camera/          # Live camera capture
-├── decoder/         # Run widths to digits
+├── BarCode/
+│   ├── common/      # Shared Image class
+│   ├── encoder/     # Digits to Code 39 patterns
+│   ├── generator/   # Patterns to barcode image
+│   ├── scanner/     # Image to run widths
+│   ├── camera/      # Live camera capture
+│   └── decoder/     # Run widths to digits
 ├── models/          # Product, Order, OrderDetail, Bill, User
 ├── repositories/    # Text file read/write
 ├── services/        # Product, order, billing, auth, payment
