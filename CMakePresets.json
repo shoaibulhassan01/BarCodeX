@@ -5,7 +5,7 @@
       "name": "qt-mingw",
       "displayName": "Qt 6 - MinGW",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/BarCodeX",
+      "binaryDir": "${sourceDir}/build/DukaanOS",
       "cacheVariables": {
         "CMAKE_CXX_COMPILER": "$env{CMAKE_CXX_COMPILER}",
         "CMAKE_MAKE_PROGRAM": "$env{CMAKE_MAKE_PROGRAM}",
