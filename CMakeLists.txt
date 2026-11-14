@@ -12,6 +12,18 @@ qt_standard_project_setup()
 qt_add_executable(BarCodeX
     main.cpp
     ui/ui.cpp
+    ui/pos/pos_ui.cpp
+    POS/common/id_generator.cpp
+    POS/common/record_codec.cpp
+    POS/user/user_repository.cpp
+    POS/user/auth_service.cpp
+    POS/product/product_repository.cpp
+    POS/product/product_service.cpp
+    POS/scanner/pos_barcode_scanner.cpp
+    POS/order/order_repository.cpp
+    POS/order/order_service.cpp
+    POS/bill/bill_repository.cpp
+    POS/bill/bill_service.cpp
     BarCode/encoder/encoder.cpp
     BarCode/generator/generator.cpp
     BarCode/scanner/scanner.cpp
@@ -25,6 +37,16 @@ set_target_properties(BarCodeX PROPERTIES WIN32_EXECUTABLE ON)
 
 include(CTest)
 if(BUILD_TESTING)
+    qt_add_executable(PosStarterTest
+        POS/tests/pos_starter_test.cpp
+        POS/common/record_codec.cpp
+        POS/product/product_repository.cpp
+        POS/product/product_service.cpp
+        POS/bill/bill_service.cpp
+    )
+    target_link_libraries(PosStarterTest PRIVATE Qt6::Core)
+    add_test(NAME PosStarterTest COMMAND PosStarterTest)
+
     qt_add_executable(CameraScannerTest
         BarCode/encoder/encoder.cpp
         BarCode/generator/generator.cpp

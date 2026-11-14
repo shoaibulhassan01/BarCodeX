@@ -28,11 +28,11 @@ A barcode based Point of Sale (POS) system built with C++ and Qt. Products are i
 
 | Name | Responsibility |
 |---|---|
-| Shoaib Ul Hassan (Team Leader) | Shared interfaces, models, encoder, ID generation, integration |
-| Umar Khan | Camera input, image preprocessing, scan-line extraction |
-| Zain Ul Abideen | Barcode generation, file repositories |
-| Anas | Barcode decoding, services and payment modes |
-| Abdul Ahad | User interface and navigation |
+| Shoaib Ul Hassan (Team Leader) | Login/authentication, ID rules and final integration |
+| Umar Khan | Product records, file format helpers, barcode lookup and stock checks |
+| Zain Ul Abideen | POS adapter for the existing camera barcode scanner |
+| Anas | Order, order-detail, bill, payment and hold/resume logic |
+| Abdul Ahad | All POS screens and navigation |
 
 ## Getting Started (Windows)
 
@@ -57,16 +57,23 @@ DukaanOS/
 │   ├── scanner/     # Image to run widths
 │   ├── camera/      # Live camera capture
 │   └── decoder/     # Run widths to digits
-├── models/          # Product, Order, OrderDetail, Bill, User
-├── repositories/    # Text file read/write
-├── services/        # Product, order, billing, auth, payment
-├── ui/              # Pages and widgets
-├── data/            # Product.txt, Order.txt, OrderDetail.txt, Bill.txt, Users.txt
-├── barcodes/        # Product barcode images
+├── POS/
+│   ├── common/      # Record format helpers and ID generation
+│   ├── user/        # User records and authentication
+│   ├── product/     # Product records, lookup and stock checks
+│   ├── scanner/     # POS adapter for the Increment 1 camera scanner
+│   ├── order/       # Orders, order details and cashier workflow
+│   ├── bill/        # Bill rows, calculations and persistence
+│   └── tests/       # Focused POS logic tests
+├── ui/
+│   ├── ui.cpp       # Existing Increment 1 barcode UI
+│   └── pos/         # Increment 2 POS screen starter
+├── Data/            # Product.txt, Order.txt, OrderDetail.txt, Bill.txt, Users.txt
+├── barcodes/        # Generated product barcode images
 └── tests/
 ```
 
-Pages only handle display and input, services hold the business rules, and repositories only read and write files. Each member works only inside their own folder, and shared `.h` files are changed only by the Team Leader.
+The Increment 2 files are starter interfaces: functions marked TODO still need their assigned implementation. Keep UI display/input separate from business rules and file persistence. The current `main.cpp` still launches the Increment 1 barcode UI; POS window integration is a final step.
 
 ## Data Files
 
