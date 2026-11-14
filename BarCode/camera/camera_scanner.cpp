@@ -26,11 +26,51 @@ namespace
 {
     constexpr int kThresholdCount = 5;
     constexpr int kPreviewIntervalMs = 50;
+    // Largest side used for decoding. The camera is asked for ~720p, so live
+    // frames are scanned at full resolution: shrinking them made small
+    // barcodes (and the short side of portrait frames) too thin to read.
+    constexpr int kLiveMaxDim = 1280;
+    constexpr int kStillMaxDim = 1600;
     using Thresholds = std::array<int, kThresholdCount>;
 
     // ---------------------------------------------------------------
     // 1-D decoding
     // ---------------------------------------------------------------
+    // Cheap pre-check: do the 9 runs at `at` look like the '*' start/stop
+    // symbol (forward or reversed)? '*' has both narrow and wide bars and
+    // spaces, so it can be classified on its own. This rejects almost every
+    // window before the full 79-run classification, which keeps full
+    // resolution scanning fast.
+    bool looksLikeStartStop(const std::vector<int>& runs, size_t at)
+    {
+        int minBar = std::numeric_limits<int>::max();
+        int maxBar = 0;
+        int minSpace = std::numeric_limits<int>::max();
+        int maxSpace = 0;
+        for (size_t i = 0; i < 9; ++i)
+        {
+            const int run = runs[at + i];
+            if (i % 2 == 0)
+            {
+                minBar = std::min(minBar, run);
+                maxBar = std::max(maxBar, run);
+            }
+            else
+            {
+                minSpace = std::min(minSpace, run);
+                maxSpace = std::max(maxSpace, run);
+            }
+        }
+        char symbol[9];
+        for (size_t i = 0; i < 9; ++i)
+        {
+            const int cutoff = (i % 2 == 0) ? minBar + maxBar : minSpace + maxSpace;
+            symbol[i] = runs[at + i] * 2 <= cutoff ? 'n' : 'w';
+        }
+        return std::equal(symbol, symbol + 9, "nwnnwnwnn") ||
+            std::equal(symbol, symbol + 9, "nnwnwnnwn");
+    }
+
     bool decodeRunsOnLine(int width, const std::vector<bool>& dark, QString& digits)
     {
         int first = 0;
@@ -69,12 +109,21 @@ namespace
             return false;
 
         constexpr size_t elementsPerBarcode = 79;
+        // '*' start/stop symbol, and the same symbol read backwards. A line read
+        // right-to-left (barcode upside down, rotated the "other" way by 90
+        // degrees, or a mirrored webcam image) shows the reversed form at both
+        // ends; decodeRuns() then reverses the whole pattern itself.
         constexpr char startStop[] = "nwnnwnwnn";
+        constexpr char startStopReversed[] = "nnwnwnnwn";
         std::string pattern;
         pattern.reserve(elementsPerBarcode);
 
         for (size_t start = 0; start + elementsPerBarcode <= runs.size(); start += 2)
         {
+            if (!looksLikeStartStop(runs, start) ||
+                !looksLikeStartStop(runs, start + elementsPerBarcode - 9))
+                continue;
+
             int minBar = runs[start];
             int maxBar = runs[start];
             int minSpace = width;
@@ -103,8 +152,11 @@ namespace
                 pattern.push_back(runs[start + i] * 2 <= cutoff ? 'n' : 'w');
             }
 
-            if (pattern.compare(0, 9, startStop) != 0 ||
-                pattern.compare(70, 9, startStop) != 0)
+            const bool forward = pattern.compare(0, 9, startStop) == 0 &&
+                pattern.compare(70, 9, startStop) == 0;
+            const bool backward = pattern.compare(0, 9, startStopReversed) == 0 &&
+                pattern.compare(70, 9, startStopReversed) == 0;
+            if (!forward && !backward)
                 continue;
 
             std::string decoded;
@@ -329,51 +381,72 @@ namespace
         return scanPixels(smoothed, thresholds, digits);
     }
 
-    // Tilted barcodes. Lines are tried from the center outwards as well.
-    bool scanSlantedOrientation(const QImage& image, double baseAngle,
-        const Thresholds& thresholds, int angleStep, double lineSpacing,
-        QString& digits)
+    // Tilted barcodes at any angle. Lines are tried from the center outwards.
+    // Only 0..180 degrees is needed: a line at angle+180 is the same line read
+    // backwards, and reversed reads are decoded too. Angles closest to
+    // horizontal/vertical are tried first because they are the most common.
+    std::vector<double> slantAngles(int angleStep)
+    {
+        std::vector<double> angles;
+        for (int delta = angleStep; delta <= 45; delta += angleStep)
+        {
+            angles.push_back(delta);            // just below horizontal
+            angles.push_back(180 - delta);      // just above horizontal
+            if (delta < 45)
+            {
+                angles.push_back(90 - delta);   // either side of vertical
+                angles.push_back(90 + delta);
+            }
+        }
+        return angles;
+    }
+
+    bool scanSlantedAngle(const QImage& image, double angle,
+        const Thresholds& thresholds, double lineSpacing, QString& digits)
     {
         const double halfWidth = (image.width() - 1) / 2.0;
         const double halfHeight = (image.height() - 1) / 2.0;
+        const double radians = angle * 3.14159265358979323846 / 180.0;
+        const double dx = std::cos(radians);
+        const double dy = std::sin(radians);
+        double halfLength = std::numeric_limits<double>::max();
+        if (std::abs(dx) > 1e-6)
+            halfLength = std::min(halfLength, halfWidth / std::abs(dx));
+        if (std::abs(dy) > 1e-6)
+            halfLength = std::min(halfLength, halfHeight / std::abs(dy));
+        halfLength *= 0.94;
 
-        for (int delta = angleStep; delta <= 30; delta += angleStep)
+        const double remainingX = halfWidth - halfLength * std::abs(dx);
+        const double remainingY = halfHeight - halfLength * std::abs(dy);
+        const double nx = std::abs(dy);
+        const double ny = std::abs(dx);
+        double halfOffset = std::numeric_limits<double>::max();
+        if (nx > 1e-6)
+            halfOffset = std::min(halfOffset, remainingX / nx);
+        if (ny > 1e-6)
+            halfOffset = std::min(halfOffset, remainingY / ny);
+        halfOffset = std::max(0.0, halfOffset - 2.0);
+
+        const int steps = std::clamp(
+            static_cast<int>(halfOffset / lineSpacing), 0, 60);
+        for (int k = 0; k <= steps; ++k)
         {
-            for (const int sign : { -1, 1 })
-            {
-                const double angle = baseAngle + sign * delta;
-                const double radians = angle * 3.14159265358979323846 / 180.0;
-                const double dx = std::cos(radians);
-                const double dy = std::sin(radians);
-                double halfLength = std::numeric_limits<double>::max();
-                if (std::abs(dx) > 1e-6)
-                    halfLength = std::min(halfLength, halfWidth / std::abs(dx));
-                if (std::abs(dy) > 1e-6)
-                    halfLength = std::min(halfLength, halfHeight / std::abs(dy));
-                halfLength *= 0.94;
+            const double offset = k * lineSpacing;
+            if (sampleLine(image, angle, offset, thresholds, digits))
+                return true;
+            if (k > 0 && sampleLine(image, angle, -offset, thresholds, digits))
+                return true;
+        }
+        return false;
+    }
 
-                const double remainingX = halfWidth - halfLength * std::abs(dx);
-                const double remainingY = halfHeight - halfLength * std::abs(dy);
-                const double nx = std::abs(dy);
-                const double ny = std::abs(dx);
-                double halfOffset = std::numeric_limits<double>::max();
-                if (nx > 1e-6)
-                    halfOffset = std::min(halfOffset, remainingX / nx);
-                if (ny > 1e-6)
-                    halfOffset = std::min(halfOffset, remainingY / ny);
-                halfOffset = std::max(0.0, halfOffset - 2.0);
-
-                const int steps = std::clamp(
-                    static_cast<int>(halfOffset / lineSpacing), 0, 60);
-                for (int k = 0; k <= steps; ++k)
-                {
-                    const double offset = k * lineSpacing;
-                    if (sampleLine(image, angle, offset, thresholds, digits))
-                        return true;
-                    if (k > 0 && sampleLine(image, angle, -offset, thresholds, digits))
-                        return true;
-                }
-            }
+    bool scanSlanted(const QImage& image, const Thresholds& thresholds,
+        int angleStep, double lineSpacing, QString& digits)
+    {
+        for (const double angle : slantAngles(angleStep))
+        {
+            if (scanSlantedAngle(image, angle, thresholds, lineSpacing, digits))
+                return true;
         }
         return false;
     }
@@ -383,19 +456,24 @@ namespace
         QImage image = source.format() == QImage::Format_Grayscale8
             ? source
             : source.convertToFormat(QImage::Format_Grayscale8);
+        // Smooth (area-averaging) scaling: nearest-neighbour drops whole
+        // pixel columns and makes thin bars vanish, which hurt portrait
+        // frames most because their short side was shrunk the most.
         if (image.width() > maxDim || image.height() > maxDim)
-            image = image.scaled(maxDim, maxDim, Qt::KeepAspectRatio, Qt::FastTransformation);
+            image = image.scaled(maxDim, maxDim, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         return image;
     }
 
     // Fast pass (used for every live camera frame):
-    //   horizontal rows (center first) -> vertical rows (center first)
+    //   horizontal rows (center first) -> vertical rows (center first).
+    // Each line is decoded left-to-right and right-to-left, so this covers
+    // 0, 90, 180 and 270 degrees and mirrored webcam images.
     bool decodeFast(const QImage& source, QString& digits)
     {
         if (source.isNull())
             return false;
 
-        const QImage image = prepareImage(source, 960);
+        const QImage image = prepareImage(source, kLiveMaxDim);
         const Thresholds thresholds = thresholdsFor(image);
         if (scanOrientation(image, thresholds, 90, digits))
             return true;
@@ -404,13 +482,13 @@ namespace
         return scanOrientation(rotated, thresholdsFor(rotated), 90, digits);
     }
 
-    // Thorough pass: everything the fast pass does + tilted barcodes.
+    // Thorough pass: everything the fast pass does + barcodes tilted at any angle.
     bool decodeThorough(const QImage& source, QString& digits, bool coarse)
     {
         if (source.isNull())
             return false;
 
-        const QImage image = prepareImage(source, coarse ? 960 : 1280);
+        const QImage image = prepareImage(source, coarse ? kLiveMaxDim : kStillMaxDim);
         const Thresholds thresholds = thresholdsFor(image);
         if (scanOrientation(image, thresholds, coarse ? 90 : 180, digits))
             return true;
@@ -421,9 +499,7 @@ namespace
 
         const int angleStep = coarse ? 5 : 3;
         const double spacing = coarse ? 10.0 : 4.0;
-        if (scanSlantedOrientation(image, 0.0, thresholds, angleStep, spacing, digits))
-            return true;
-        return scanSlantedOrientation(image, 90.0, thresholds, angleStep, spacing, digits);
+        return scanSlanted(image, thresholds, angleStep, spacing, digits);
     }
 
     // ---------------------------------------------------------------
@@ -617,9 +693,12 @@ void CameraBarcodeScanner::processFrame(const QVideoFrame& frame)
         return;
     decoding = true;
 
-    // Most attempts are the fast pass. Every 6th failed attempt runs the
-    // thorough pass (tilted barcodes) so those still get found.
-    const bool thorough = (++failedScans % 6 == 0);
+    // Most attempts are the fast pass (rows and columns, both read
+    // directions). Every 4th failed attempt runs the thorough pass, which
+    // also covers barcodes tilted at any angle, so a phone held portrait,
+    // upside down or diagonally is still picked up within a fraction of a
+    // second.
+    const bool thorough = (++failedScans % 4 == 0);
 
     QPointer<CameraBarcodeScanner> self(this);
     QThreadPool::globalInstance()->start([self, image, thorough] {
