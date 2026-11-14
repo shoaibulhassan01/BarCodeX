@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(BarCodeX LANGUAGES CXX)
+project(DukaanOS LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -9,7 +9,7 @@ find_package(Qt6 REQUIRED COMPONENTS Widgets Multimedia)
 
 qt_standard_project_setup()
 
-qt_add_executable(BarCodeX
+qt_add_executable(DukaanOS
     main.cpp
     ui/ui.cpp
     BarCode/encoder/encoder.cpp
@@ -19,9 +19,9 @@ qt_add_executable(BarCodeX
     BarCode/camera/camera_scanner.cpp
 )
 
-target_include_directories(BarCodeX PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/BarCode")
-target_link_libraries(BarCodeX PRIVATE Qt6::Widgets Qt6::Multimedia)
-set_target_properties(BarCodeX PROPERTIES WIN32_EXECUTABLE ON)
+target_include_directories(DukaanOS PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/BarCode")
+target_link_libraries(DukaanOS PRIVATE Qt6::Widgets Qt6::Multimedia)
+set_target_properties(DukaanOS PROPERTIES WIN32_EXECUTABLE ON)
 
 include(CTest)
 if(BUILD_TESTING)

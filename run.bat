@@ -62,23 +62,23 @@ if not defined NINJA_EXE (
     exit /b 1
 )
 
-echo Configuring BarCodeX...
-"%CMAKE_EXE%" -S "%~dp0." -B "%~dp0build\BarCodeX" -G Ninja -DCMAKE_MAKE_PROGRAM="%NINJA_EXE%" -DCMAKE_CXX_COMPILER="%CXX_COMPILER%" -DCMAKE_PREFIX_PATH="%QT_PREFIX_PATH%"
+echo Configuring DukaanOS...
+"%CMAKE_EXE%" -S "%~dp0." -B "%~dp0build\DukaanOS" -G Ninja -DCMAKE_MAKE_PROGRAM="%NINJA_EXE%" -DCMAKE_CXX_COMPILER="%CXX_COMPILER%" -DCMAKE_PREFIX_PATH="%QT_PREFIX_PATH%"
 if errorlevel 1 (
     echo CMake configure failed. Check that the MinGW compiler matches the installed Qt kit.
     pause
     exit /b 1
 )
 
-echo Building BarCodeX...
-"%CMAKE_EXE%" --build "%~dp0build\BarCodeX" --target BarCodeX
+echo Building DukaanOS...
+"%CMAKE_EXE%" --build "%~dp0build\DukaanOS" --target DukaanOS
 if errorlevel 1 (
     echo Build failed.
     pause
     exit /b 1
 )
 
-set "APP_EXE=%~dp0build\BarCodeX\BarCodeX.exe"
+set "APP_EXE=%~dp0build\DukaanOS\DukaanOS.exe"
 if not exist "%APP_EXE%" (
     echo Application executable was not created.
     pause
@@ -108,7 +108,7 @@ if errorlevel 1 (
 goto :eof
 
 :package
-set "PACKAGE_DIR=%~dp0dist\BarCodeX"
+set "PACKAGE_DIR=%~dp0dist\DukaanOS"
 if not exist "%QT_PREFIX_PATH%\bin\windeployqt.exe" (
     echo windeployqt was not found. Cannot create a standalone package.
     pause
@@ -128,7 +128,7 @@ if errorlevel 1 (
     exit /b 1
 )
 
-copy /y "%APP_EXE%" "%PACKAGE_DIR%\BarCodeX.exe" >nul
+copy /y "%APP_EXE%" "%PACKAGE_DIR%\DukaanOS.exe" >nul
 if errorlevel 1 (
     echo Could not copy the application executable.
     pause
