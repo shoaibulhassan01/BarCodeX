@@ -12,24 +12,26 @@ qt_standard_project_setup()
 qt_add_executable(BarCodeX
     main.cpp
     ui/ui.cpp
-    encoder/encoder.cpp
-    generator/generator.cpp
-    scanner/scanner.cpp
-    decoder/decoder.cpp
-    camera/camera_scanner.cpp
+    BarCode/encoder/encoder.cpp
+    BarCode/generator/generator.cpp
+    BarCode/scanner/scanner.cpp
+    BarCode/decoder/decoder.cpp
+    BarCode/camera/camera_scanner.cpp
 )
 
+target_include_directories(BarCodeX PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/BarCode")
 target_link_libraries(BarCodeX PRIVATE Qt6::Widgets Qt6::Multimedia)
 set_target_properties(BarCodeX PROPERTIES WIN32_EXECUTABLE ON)
 
 include(CTest)
 if(BUILD_TESTING)
     qt_add_executable(CameraScannerTest
-        encoder/encoder.cpp
-        generator/generator.cpp
-        decoder/decoder.cpp
-        camera/camera_scanner.cpp
+        BarCode/encoder/encoder.cpp
+        BarCode/generator/generator.cpp
+        BarCode/decoder/decoder.cpp
+        BarCode/camera/camera_scanner.cpp
     )
+    target_include_directories(CameraScannerTest PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/BarCode")
     target_link_libraries(CameraScannerTest PRIVATE Qt6::Multimedia)
     add_test(NAME CameraScannerTest COMMAND CameraScannerTest)
 endif()
